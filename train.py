@@ -95,7 +95,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logger.info(f'当前运行环境为device: {device}')
 
-    t_loader = train_loader(config.train_data_path)
+    t_loader,valid_loader = train_loader(config.train_data_path)
     crnn = CRNN(config.channel, config.height, config.weight, config.num_class,
                 map_to_seq_hidden=crc_train_config['map_to_seq_hidden'],
                 rnn_hidden=crc_train_config['rnn_hidden'],
@@ -120,20 +120,19 @@ def main():
             tot_train_count += train_size
             if i % show_interval == 0:
                 logger.info(f' epoch:{epoch}, iter:{i}, train_batch_loss [{loss/train_size}]')
+            if i % valid_interval == 0:
+                evaluation = evaluate(crnn, valid_loader, criterion,
+                                      decode_method=config['decode_method'],
+                                      beam_size=config['beam_size'])
+                print('valid_evaluation: loss={loss}, acc={acc}'.format(**evaluation))
 
-            # if i % valid_interval == 0:
-            #     evaluation = evaluate(crnn, valid_loader, criterion,
-            #                           decode_method=config['decode_method'],
-            #                           beam_size=config['beam_size'])
-            #     print('valid_evaluation: loss={loss}, acc={acc}'.format(**evaluation))
-            #
-            #     if i % save_interval == 0:
-            #         prefix = 'crc'
-            #         loss = evaluation['loss']
-            #         save_model_path = os.path.join(config['checkpoints_dir'],
-            #                                        f'{prefix}_{i:06}_loss{loss}.pt')
-            #         torch.save(crnn.state_dict(), save_model_path)
-            #         print('save model at ', save_model_path)
+                if i % save_interval == 0:
+                    prefix = 'crc'
+                    loss = evaluation['loss']
+                    save_model_path = os.path.join(config['checkpoints_dir'],
+                                                   f'{prefix}_{i:06}_loss{loss}.pt')
+                    torch.save(crnn.state_dict(), save_model_path)
+                    print('save model at ', save_model_path)
 
             i += 1
 

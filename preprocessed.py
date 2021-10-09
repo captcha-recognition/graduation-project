@@ -10,6 +10,9 @@ from torch.utils.data import dataset,dataloader
 import config
 from logger import  logger
 
+
+
+
 class CaptchaDataset(dataset.Dataset):
     """
     ## 加载数据，数据格式为
@@ -65,7 +68,8 @@ def captcha_collate_fn(batch):
     target_lengths = torch.cat(target_lengths, 0)
     return images, targets, target_lengths
 
-def train_loader(train_path,batch_size = config.batch_size, height = config.height, weight = config.weight,collate_fn = captcha_collate_fn):
+def train_loader(train_path,train_rate = config.train_rate,batch_size = config.batch_size,
+                 height = config.height, weight = config.weight,collate_fn = captcha_collate_fn):
     """
     
     :param train_path:  the path of training data
@@ -80,7 +84,10 @@ def train_loader(train_path,batch_size = config.batch_size, height = config.heig
          ]
     )
     train_set = CaptchaDataset(train_path, transformer=transformer)
-    return dataloader.DataLoader(train_set, batch_size=batch_size, shuffle=True,collate_fn= collate_fn)
+    train_len = int(len(train_set)*train_rate)
+    train_data, val_data = torch.utils.data.random_split(train_set,[train_len,len(train_set)-train_len])
+    return dataloader.DataLoader(train_data, batch_size=batch_size, shuffle=True,collate_fn= collate_fn),\
+           dataloader.DataLoader(val_data, batch_size=batch_size, shuffle=True,collate_fn= collate_fn)
 
 
 def test_loader(test_path,batch_size = config.batch_size, height = config.height, weight = config.weight,collate_fn = captcha_collate_fn):
@@ -104,16 +111,7 @@ def test_loader(test_path,batch_size = config.batch_size, height = config.height
 
 
 if __name__ == '__main__':
-
-     height = 32
-     weight = 100
-     transformer = transforms.Compose(
-         [transforms.Resize((height, weight)),
-          transforms.ToTensor(),
-          ]
-     )
-     train_set = CaptchaDataset(config.train_data_path,transformer=transformer)
-     train_loader = dataloader.DataLoader(train_set,batch_size= 64,shuffle=False,drop_last=True,collate_fn=captcha_collate_fn)
+     train_loader,val_loader = train_loader(config.train_data_path)
      #print(train_set.image_paths[1089])
      # imgs, targets, target_lens  = next(iter(train_loader))
      # grid_img = torchvision.utils.make_grid(imgs,nrow = 4)
