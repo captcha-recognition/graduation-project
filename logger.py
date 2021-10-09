@@ -23,9 +23,14 @@ fh.setLevel(logging.DEBUG)
 formatter = logging.Formatter("%(asctime)s - %(filename)s[line:%(lineno)d] -%(levelname)s:%(message)s")
 # setFormatter(fmt): 将此处理器的 Formatter 设置为 fmt。
 fh.setFormatter(formatter)
-
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+# tell the handler to use this format
+console.setFormatter(formatter)
 # addHandler(hdlr):将指定的处理器hdlr添加到此记录器。
 logger.addHandler(fh)
+logger.addHandler(console)
 
 
 

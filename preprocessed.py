@@ -114,7 +114,7 @@ if __name__ == '__main__':
      )
      train_set = CaptchaDataset(config.train_data_path,transformer=transformer)
      train_loader = dataloader.DataLoader(train_set,batch_size= 64,shuffle=False,drop_last=True,collate_fn=captcha_collate_fn)
-     print(train_set.image_paths[1089])
+     #print(train_set.image_paths[1089])
      # imgs, targets, target_lens  = next(iter(train_loader))
      # grid_img = torchvision.utils.make_grid(imgs,nrow = 4)
      # print(grid_img.shape)
