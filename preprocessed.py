@@ -53,12 +53,19 @@ class CaptchaDataset(dataset.Dataset):
             target = torch.LongTensor(target)
             target_length = torch.LongTensor(target_length)
             img = self.transformer(img)
-            #print(img.shape)
             return img, target, target_length
         else:
             return self.transformer(img)
 
-def train_loader(train_path,batch_size = config.batch_size, height = config.height, weight = config.weight):
+def captcha_collate_fn(batch):
+
+    images, targets, target_lengths = zip(*batch)
+    images = torch.stack(images, 0)
+    targets = torch.cat(targets, 0)
+    target_lengths = torch.cat(target_lengths, 0)
+    return images, targets, target_lengths
+
+def train_loader(train_path,batch_size = config.batch_size, height = config.height, weight = config.weight,collate_fn = captcha_collate_fn):
     """
     
     :param train_path:  the path of training data
@@ -73,10 +80,10 @@ def train_loader(train_path,batch_size = config.batch_size, height = config.heig
          ]
     )
     train_set = CaptchaDataset(train_path, transformer=transformer)
-    return dataloader.DataLoader(train_set, batch_size=batch_size, shuffle=True)
+    return dataloader.DataLoader(train_set, batch_size=batch_size, shuffle=True,collate_fn= collate_fn)
 
 
-def test_loader(test_path,batch_size = config.batch_size, height = config.height, weight = config.weight):
+def test_loader(test_path,batch_size = config.batch_size, height = config.height, weight = config.weight,collate_fn = captcha_collate_fn):
     """
 
     :param test_path:
@@ -91,7 +98,8 @@ def test_loader(test_path,batch_size = config.batch_size, height = config.height
          ]
     )
     test_set = CaptchaDataset(test_path,train = False, transformer=transformer)
-    return dataloader.DataLoader(test_set, batch_size=batch_size, shuffle=False)
+    return dataloader.DataLoader(test_set, batch_size=batch_size, shuffle=False,collate_fn= collate_fn)
+
 
 
 
@@ -105,7 +113,7 @@ if __name__ == '__main__':
           ]
      )
      train_set = CaptchaDataset(config.train_data_path,transformer=transformer)
-     train_loader = dataloader.DataLoader(train_set,batch_size= 64,shuffle=False,drop_last=True)
+     train_loader = dataloader.DataLoader(train_set,batch_size= 64,shuffle=False,drop_last=True,collate_fn=captcha_collate_fn)
      print(train_set.image_paths[1089])
      # imgs, targets, target_lens  = next(iter(train_loader))
      # grid_img = torchvision.utils.make_grid(imgs,nrow = 4)
@@ -115,7 +123,7 @@ if __name__ == '__main__':
      # plt.imsave(f"pres/preprocessed_{height}_{weight}.jpg",grid_img.permute(1, 2, 0).numpy())
      num = 0
      for imgs, targets, target_lens  in train_loader:
-         num += len(targets)
+         num += len(imgs)
          logger.info(f"imgs:{imgs.shape}, {num}")
 
 
