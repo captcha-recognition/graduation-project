@@ -40,10 +40,15 @@ class CaptchaDataset(dataset.Dataset):
 
     def __getitem__(self, idx):
         image_path = os.path.join(self.root,self.image_paths[idx])
-        label = self.labels[idx]
         img = Image.open(image_path)
         img = img.convert("RGB")
-        return self.transformer(img), label
+        if self.train:
+            label = self.labels[idx]
+            target = [config.CHAR2LABEL[c] for c in label]
+            target_length = [len(target)]
+            return self.transformer(img), target, target_length
+        else:
+            return self.transformer(img)
 
 def train_loader(train_path,batch_size = config.batch_size, x = config.x, y = config.y):
     """
@@ -84,8 +89,8 @@ def test_loader(test_path,batch_size = config.batch_size, x = config.x, y = conf
 
 if __name__ == '__main__':
 
-     x = 30
-     y = 90
+     x = 32
+     y = 100
      transformer = transforms.Compose(
          [transforms.Resize((x,y)),
           transforms.ToTensor(),
@@ -94,9 +99,10 @@ if __name__ == '__main__':
      train_set = CaptchaDataset(config.train_data_path,transformer=transformer)
      train_loader = dataloader.DataLoader(train_set,batch_size=64,shuffle=False)
 
-     imgs, labels = next(iter(train_loader))
+     imgs, targets, target_lens  = next(iter(train_loader))
      grid_img = torchvision.utils.make_grid(imgs,nrow = 4)
      print(grid_img.shape)
+     print(targets)
      plt.imshow(grid_img.permute(1, 2, 0))
      plt.imsave(f"pres/preprocessed_{x}_{y}.jpg",grid_img.permute(1, 2, 0).numpy())
 
