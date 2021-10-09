@@ -10,8 +10,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 rq = time.strftime('%Y%m%d%H%M', time.localtime(time.time()))
-log_path = os.path.dirname(os.getcwd()) + '/Logs/'
-log_name = rq + '.log'
+log_name = os.path.join('log/',rq + '.log')
 
 # 将日志消息发送到磁盘文件，默认情况下文件大小会无限增长
 fh = logging.FileHandler(log_name, mode='w')

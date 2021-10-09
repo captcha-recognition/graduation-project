@@ -1,18 +1,19 @@
 # 数据预处理
 import os
-import torch
-import cv2
 import torchvision.utils
 from torchvision import transforms
 import matplotlib.pyplot as plt
 from PIL import Image
 from torch.utils.data import dataset,dataloader
-## 加载数据，数据格式为
-# train: label.png
-# test: index.png
 import config
 
 class CaptchaDataset(dataset.Dataset):
+    """
+    ## 加载数据，数据格式为
+    # train: label.png
+    # test: index.png
+    """
+
     def __init__(self, root, transformer = None,train = True):
         """
         captcha dataset
@@ -44,12 +45,12 @@ class CaptchaDataset(dataset.Dataset):
         img = img.convert("RGB")
         return self.transformer(img), label
 
-def train_loader(train_path,batch_size,x = config.x, y = config.y):
+def train_loader(train_path,batch_size = config.batch_size, x = config.x, y = config.y):
     """
     
-    :param train_path: 
+    :param train_path:  the path of training data
     :param batch_size: 
-    :param x: 
+    :param x: resize
     :param y: 
     :return: 
     """""
@@ -62,12 +63,12 @@ def train_loader(train_path,batch_size,x = config.x, y = config.y):
     return dataloader.DataLoader(train_set, batch_size=batch_size, shuffle=True)
 
 
-def test_loader(test_path,batch_size, x = config.x, y = config.y):
+def test_loader(test_path,batch_size = config.batch_size, x = config.x, y = config.y):
     """
 
     :param test_path:
     :param batch_size:
-    :param x:
+    :param x: resize
     :param y:
     :return:
     """
