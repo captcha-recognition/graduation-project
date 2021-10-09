@@ -5,8 +5,9 @@ train_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/train"
 test_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/test"
 train_rate = 0.8
 # resize 大小
-x = 32
-y = 100
+channel = 3
+height = 32
+weight = 100
 batch_size = 64
 
 
@@ -20,9 +21,11 @@ crc_train_config = {
    "rnn_hidden": 256,
    "leaky_relu": False,
    "reload_checkpoint":"checkpoint/crc_checkpoints/",
-   "show_interval":50,
+   "show_interval":10,
    'valid_interval': 500,
    'save_interval': 2000,
+   "drop_last":True,
+   "num_workers":3,
 
 }
 

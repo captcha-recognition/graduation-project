@@ -1,11 +1,14 @@
 # 数据预处理
+import logging
 import os
+import torch
 import torchvision.utils
 from torchvision import transforms
 import matplotlib.pyplot as plt
 from PIL import Image
 from torch.utils.data import dataset,dataloader
 import config
+from logger import  logger
 
 class CaptchaDataset(dataset.Dataset):
     """
@@ -41,16 +44,21 @@ class CaptchaDataset(dataset.Dataset):
     def __getitem__(self, idx):
         image_path = os.path.join(self.root,self.image_paths[idx])
         img = Image.open(image_path)
+        # print(self.labels[idx])
         img = img.convert("RGB")
         if self.train:
             label = self.labels[idx]
             target = [config.CHAR2LABEL[c] for c in label]
             target_length = [len(target)]
-            return self.transformer(img), target, target_length
+            target = torch.LongTensor(target)
+            target_length = torch.LongTensor(target_length)
+            img = self.transformer(img)
+            #print(img.shape)
+            return img, target, target_length
         else:
             return self.transformer(img)
 
-def train_loader(train_path,batch_size = config.batch_size, x = config.x, y = config.y):
+def train_loader(train_path,batch_size = config.batch_size, height = config.height, weight = config.weight):
     """
     
     :param train_path:  the path of training data
@@ -60,7 +68,7 @@ def train_loader(train_path,batch_size = config.batch_size, x = config.x, y = co
     :return: 
     """""
     transformer = transforms.Compose(
-        [transforms.Resize((x, y)),
+        [transforms.Resize((height, weight)),
          transforms.ToTensor(),
          ]
     )
@@ -68,7 +76,7 @@ def train_loader(train_path,batch_size = config.batch_size, x = config.x, y = co
     return dataloader.DataLoader(train_set, batch_size=batch_size, shuffle=True)
 
 
-def test_loader(test_path,batch_size = config.batch_size, x = config.x, y = config.y):
+def test_loader(test_path,batch_size = config.batch_size, height = config.height, weight = config.weight):
     """
 
     :param test_path:
@@ -78,7 +86,7 @@ def test_loader(test_path,batch_size = config.batch_size, x = config.x, y = conf
     :return:
     """
     transformer = transforms.Compose(
-        [transforms.Resize((x, y)),
+        [transforms.Resize((height, weight)),
          transforms.ToTensor(),
          ]
     )
@@ -89,20 +97,26 @@ def test_loader(test_path,batch_size = config.batch_size, x = config.x, y = conf
 
 if __name__ == '__main__':
 
-     x = 32
-     y = 100
+     height = 32
+     weight = 100
      transformer = transforms.Compose(
-         [transforms.Resize((x,y)),
+         [transforms.Resize((height, weight)),
           transforms.ToTensor(),
           ]
      )
      train_set = CaptchaDataset(config.train_data_path,transformer=transformer)
-     train_loader = dataloader.DataLoader(train_set,batch_size=64,shuffle=False)
+     train_loader = dataloader.DataLoader(train_set,batch_size= 64,shuffle=False,drop_last=True)
+     print(train_set.image_paths[1089])
+     # imgs, targets, target_lens  = next(iter(train_loader))
+     # grid_img = torchvision.utils.make_grid(imgs,nrow = 4)
+     # print(grid_img.shape)
+     # print(targets)
+     # plt.imshow(grid_img.permute(1, 2, 0))
+     # plt.imsave(f"pres/preprocessed_{height}_{weight}.jpg",grid_img.permute(1, 2, 0).numpy())
+     num = 0
+     for imgs, targets, target_lens  in train_loader:
+         num += len(targets)
+         logger.info(f"imgs:{imgs.shape}, {num}")
 
-     imgs, targets, target_lens  = next(iter(train_loader))
-     grid_img = torchvision.utils.make_grid(imgs,nrow = 4)
-     print(grid_img.shape)
-     print(targets)
-     plt.imshow(grid_img.permute(1, 2, 0))
-     plt.imsave(f"pres/preprocessed_{x}_{y}.jpg",grid_img.permute(1, 2, 0).numpy())
+
 
