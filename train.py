@@ -12,6 +12,7 @@ from config import crc_train_config
 import config
 from ctc import  ctc_decode
 from  tqdm import  tqdm
+import random
 
 def evaluate(crnn, dataloader, criterion,
              max_iter=None, decode_method='beam_search', beam_size=10):
@@ -29,21 +30,15 @@ def evaluate(crnn, dataloader, criterion,
             if max_iter and i >= max_iter:
                 break
             device = 'cuda' if next(crnn.parameters()).is_cuda else 'cpu'
-
             images, targets, target_lengths = [d.to(device) for d in data]
-
             logits = crnn(images)
             log_probs = torch.nn.functional.log_softmax(logits, dim=2)
-
             batch_size = images.size(0)
             input_lengths = torch.LongTensor([logits.size(0)] * batch_size)
-
             loss = criterion(log_probs, targets, input_lengths, target_lengths)
-
             preds = ctc_decode(log_probs, method=decode_method, beam_size=beam_size)
             reals = targets.cpu().numpy().tolist()
             target_lengths = target_lengths.cpu().numpy().tolist()
-
             tot_count += batch_size
             tot_loss += loss.item()
             target_length_counter = 0
@@ -63,14 +58,13 @@ def evaluate(crnn, dataloader, criterion,
         'acc': tot_correct / tot_count,
         'wrong_cases': wrong_cases
     }
+    logger.debug(wrong_cases)
     return evaluation
 
 
 def train_batch(crnn, data, optimizer, criterion, device):
     crnn.train()
-    #print(data[0].shape)
     images, targets, target_lengths = [d.to(device) for d in data]
-    #print(images.shape,targets.shape,target_lengths.shape)
     logits = crnn(images)
     log_probs = F.log_softmax(logits, dim=2)
     batch_size = images.size(0)
@@ -85,9 +79,10 @@ def train_batch(crnn, data, optimizer, criterion, device):
     return loss.item()
 
 
-def main():
+def main(train_data_path):
     epochs = crc_train_config['epochs']
     lr = crc_train_config['lr']
+    momentum = crc_train_config['momentum']
     show_interval = crc_train_config['show_interval']
     valid_interval = crc_train_config['valid_interval']
     save_interval = crc_train_config['save_interval']
@@ -95,7 +90,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logger.info(f'当前运行环境为device: {device}')
 
-    t_loader,valid_loader = train_loader(config.train_data_path)
+    t_loader,valid_loader = train_loader(train_data_path)
     crnn = CRNN(config.channel, config.height, config.weight, config.num_class,
                 map_to_seq_hidden=crc_train_config['map_to_seq_hidden'],
                 rnn_hidden=crc_train_config['rnn_hidden'],
@@ -104,11 +99,13 @@ def main():
     #     crnn.load_state_dict(torch.load(reload_checkpoint, map_location=device))
     crnn.to(device)
 
-    optimizer = optim.RMSprop(crnn.parameters(), lr=lr)
+    optimizer = optim.RMSprop(crnn.parameters(), lr=lr,momentum=momentum)
     criterion = CTCLoss(reduction='sum')
     criterion.to(device)
 
     assert save_interval % valid_interval == 0
+    train_loss = []
+    val_loss = []
     i = 1
     for epoch in tqdm(range(1, epochs + 1)):
         tot_train_loss = 0.
@@ -122,14 +119,14 @@ def main():
                 logger.info(f' epoch:{epoch}, iter:{i}, train_batch_loss [{loss/train_size}]')
             if i % valid_interval == 0:
                 evaluation = evaluate(crnn, valid_loader, criterion,
-                                      decode_method=config['decode_method'],
-                                      beam_size=config['beam_size'])
+                                      decode_method=crc_train_config['decode_method'],
+                                      beam_size=crc_train_config['beam_size'])
                 print('valid_evaluation: loss={loss}, acc={acc}'.format(**evaluation))
 
                 if i % save_interval == 0:
                     prefix = 'crc'
                     loss = evaluation['loss']
-                    save_model_path = os.path.join(config['checkpoints_dir'],
+                    save_model_path = os.path.join(crc_train_config['checkpoints_dir'],
                                                    f'{prefix}_{i:06}_loss{loss}.pt')
                     torch.save(crnn.state_dict(), save_model_path)
                     print('save model at ', save_model_path)
@@ -140,4 +137,10 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    import argparse
+    seed = 100
+    random.seed(seed)
+    parser = argparse.ArgumentParser(description='Train captcha model')
+    parser.add_argument('--train_path', type=str,required= False,default= config.train_data_path, help='The path of train dataset')
+    args = parser.parse_args()
+    main(args.train_path)

@@ -13,20 +13,22 @@ batch_size = 64
 
 ## cnn_rnn_ctc model params
 crc_train_config = {
-   "lr": 0.001,
+   "lr": 0.0005,
    "momentum": 0.9,
-   "epochs":  1000,
-   "early_stop": 100,
+   "epochs":  10000,
+   "early_stop": 200,
    "map_to_seq_hidden": 64,
    "rnn_hidden": 256,
    "leaky_relu": False,
-   "reload_checkpoint":"checkpoint/crc_checkpoints/",
+   "reload_checkpoint":"checkpoints/crc_checkpoints/",
+   "checkpoints_dir":"checkpoints/crc_checkpoints/",
    "show_interval":10,
-   'valid_interval': 500,
-   'save_interval': 2000,
+   'valid_interval': 50,
+   'save_interval': 100,
    "drop_last":True,
    "num_workers":3,
-
+   "decode_method":"beam_search",
+   "beam_size":10
 }
 
 
