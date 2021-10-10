@@ -2,7 +2,6 @@ __pycache__
 .vscode
 *.xmind
 *.log
-log
 .idea
 .DS_Store
-checkpoints
+*.pt
