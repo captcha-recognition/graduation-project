@@ -24,7 +24,7 @@ crc_train_config = {
    "checkpoints_dir":"checkpoints/crc_checkpoints/",
    "show_interval":10,
    'valid_interval': 50,
-   'save_interval': 100,
+   'save_interval': 200,
    "drop_last":True,
    "num_workers":3,
    "decode_method":"beam_search",
