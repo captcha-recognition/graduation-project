@@ -12,7 +12,6 @@ from config import crc_train_config
 import config
 from ctc import  ctc_decode
 from  tqdm import  tqdm
-import random
 
 def evaluate(crnn, dataloader, criterion,
              max_iter=None, decode_method='beam_search', beam_size=10):
@@ -101,7 +100,7 @@ def main(train_data_path,goto_train):
         crnn.load_state_dict(torch.load(reload_checkpoint, map_location=device))
         logger.info(f"Train from the least model {reload_checkpoint}")
     crnn.to(device)
-    optimizer = optim.RMSprop(crnn.parameters(), lr=lr,momentum=momentum)
+    optimizer = optim.Adam(crnn.parameters(), lr=lr)
     criterion = CTCLoss(reduction='sum')
     criterion.to(device)
     early_num = 0

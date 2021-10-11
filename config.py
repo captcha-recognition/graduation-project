@@ -13,7 +13,7 @@ batch_size = 64
 
 ## cnn_rnn_ctc model params
 crc_train_config = {
-   "lr": 0.001,
+   "lr": 1e-3,
    "momentum": 0.9,
    "epochs":  10000,
    "early_stop": 200,
