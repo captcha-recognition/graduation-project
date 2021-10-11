@@ -1,6 +1,8 @@
 # 数据预处理
 import logging
 import os
+
+import pandas as pd
 import torch
 import torchvision.utils
 from torchvision import transforms
@@ -35,16 +37,22 @@ class CaptchaDataset(dataset.Dataset):
             self.transformer = transformer
         else:
             self.transformer = transforms.ToTensor()
-        self.image_paths = os.listdir(self.root)
-        assert self.image_paths
         self.labels = None
         if self.train:
-            self.labels = [image_path.split('.')[0] for image_path in self.image_paths]
+            data = pd.read_csv(os.path.join(self.root,'train_label.csv'),skip_blank_lines=True)
+            self.labels = list(data['label'].values)
+            self.image_paths = list(data['ID'].values)
+            assert len(self.labels) == len(self.image_paths)
+        else:
+            self.image_paths = os.listdir(self.root)
+        assert self.image_paths
+
 
     def __len__(self):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
+        #print(self.image_paths[idx])
         image_path = os.path.join(self.root,self.image_paths[idx])
         img = Image.open(image_path)
         # print(self.labels[idx])

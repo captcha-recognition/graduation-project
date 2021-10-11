@@ -6,14 +6,14 @@ import torch
 import  torch.nn.functional as F
 import torch.optim as optim
 from torch.nn import CTCLoss
-from preprocessed import train_loader,test_loader
+from dataset import train_loader,test_loader
 from models.crnn import CRNN
 from config import crc_train_config
 import config
 from ctc import  ctc_decode
 from  tqdm import  tqdm
 
-def evaluate(crnn, dataloader, criterion,
+def evaluate(crnn, dataloader, criterion,device,
              max_iter=None, decode_method='beam_search', beam_size=10):
     crnn.eval()
     tot_count = 0
@@ -28,27 +28,27 @@ def evaluate(crnn, dataloader, criterion,
         for i, data in enumerate(dataloader):
             if max_iter and i >= max_iter:
                 break
-            device = 'cuda' if next(crnn.parameters()).is_cuda else 'cpu'
             images, targets, target_lengths = [d.to(device) for d in data]
             logits = crnn(images)
-            log_probs = torch.nn.functional.log_softmax(logits, dim=2)
-            batch_size = images.size(0)
-            input_lengths = torch.LongTensor([logits.size(0)] * batch_size)
+            seq_len, batch, num_class = logits.size()
+            log_probs = F.log_softmax(logits, dim=2)
+            input_lengths = torch.LongTensor([seq_len] * batch)
             loss = criterion(log_probs, targets, input_lengths, target_lengths)
             preds = ctc_decode(log_probs, method=decode_method, beam_size=beam_size)
             reals = targets.cpu().numpy().tolist()
+            #print(len(reals),len(preds),input_lengths)
             target_lengths = target_lengths.cpu().numpy().tolist()
-            tot_count += batch_size
+            tot_count += batch
             tot_loss += loss.item()
             target_length_counter = 0
             for pred, target_length in zip(preds, target_lengths):
                 real = reals[target_length_counter:target_length_counter + target_length]
                 target_length_counter += target_length
-                if pred == real:
+
+                if len(pred) >= len(real) and real == pred[:len(real)]:
                     tot_correct += 1
                 else:
                     wrong_cases.append((real, pred))
-
             pbar.update(1)
         pbar.close()
 
@@ -117,7 +117,7 @@ def main(train_data_path,goto_train):
         if epoch % show_interval == 0:
             logger.info(f'Train epoch :{epoch}, train_loss: {tot_train_loss / tot_train_count}')
         if epoch % valid_interval == 0:
-            evaluation = evaluate(crnn, valid_loader, criterion,
+            evaluation = evaluate(crnn, valid_loader, criterion,device,
                                   decode_method=crc_train_config['decode_method'],
                                   beam_size=crc_train_config['beam_size'])
             valid_loss = evaluation['loss']
@@ -139,7 +139,7 @@ def main(train_data_path,goto_train):
 
 if __name__ == '__main__':
     import argparse
-    seed = 100
+    seed = 10
     setup_seed(seed)
     parser = argparse.ArgumentParser(description='Train captcha model')
     parser.add_argument('--train_path', type=str,required= False,default= config.train_data_path, help='The path of train dataset')

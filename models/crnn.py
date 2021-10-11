@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 
@@ -78,7 +79,6 @@ class CRNN(nn.Module):
 
         conv = self.cnn(images)
         batch, channel, height, width = conv.size()
-
         conv = conv.view(batch, channel * height, width)
         conv = conv.permute(2, 0, 1)  # (width, batch, feature)
         seq = self.map_to_seq(conv)
@@ -88,3 +88,11 @@ class CRNN(nn.Module):
 
         output = self.dense(recurrent)
         return output  # shape: (seq_len, batch, num_class)
+
+
+
+if __name__ == '__main__':
+    data = torch.rand((64,3,32,100))
+    crnn = CRNN(3,32,100,63)
+    print(crnn)
+    out = crnn(data)

@@ -1,7 +1,7 @@
 # 数据配置项
 
 ## dataset 相关配置
-train_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/train"
+train_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/train_data"
 test_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/test"
 train_rate = 0.8
 # resize 大小
@@ -33,7 +33,7 @@ crc_train_config = {
 
 
 ## labels and chars only 英文和数字
-CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-CHAR2LABEL = {char: i + 1 for i, char in enumerate(CHARS)}
+CHARS = '-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+CHAR2LABEL = {char: i for i, char in enumerate(CHARS)}
 LABEL2CHAR = {label: char for char, label in CHAR2LABEL.items()}
-num_class = len(LABEL2CHAR) + 1
+num_class = len(LABEL2CHAR)
