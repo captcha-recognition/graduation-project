@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from simple_cnn import SimpleCNN
+from models.simple_cnn import SimpleCNN
 
 class CRNN(nn.Module):
 

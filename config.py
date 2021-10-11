@@ -15,7 +15,7 @@ batch_size = 64
 crc_train_config = {
    "lr": 1e-3,
    "momentum": 0.9,
-   "epochs":  10000,
+   "epochs":  1000,
    "early_stop": 200,
    "map_to_seq_hidden": 64,
    "rnn_hidden": 256,
