@@ -115,9 +115,9 @@ def main(train_data_path,goto_train):
             tot_train_loss += loss
             tot_train_count += train_size
 
-        if epoch % show_interval:
+        if epoch % show_interval == 0:
             logger.info(f'Train epoch :{epoch}, train_loss: {tot_train_loss / tot_train_count}')
-        if epoch % valid_interval:
+        if epoch % valid_interval == 0:
             evaluation = evaluate(crnn, valid_loader, criterion,
                                   decode_method=crc_train_config['decode_method'],
                                   beam_size=crc_train_config['beam_size'])
