@@ -14,7 +14,7 @@ from ctc import  ctc_decode
 from  tqdm import  tqdm
 
 
-def train(epoch,show_interval,crnn, optimizer, criterion, device,train_loader):
+def train(epoch,show_interval,crnn, optimizer, criterion, device,train_loader,max_iter=None,):
     """
 
     :param epoch:
@@ -28,6 +28,8 @@ def train(epoch,show_interval,crnn, optimizer, criterion, device,train_loader):
     """
     tot_train_loss = 0.
     tot_train_count = 0
+    pbar_total = max_iter if max_iter else len(train_loader)
+    pbar = tqdm(total=pbar_total, desc="Train")
     for train_data in train_loader:
         crnn.train()
         images, targets, target_lengths = [d.to(device) for d in train_data]
@@ -43,6 +45,8 @@ def train(epoch,show_interval,crnn, optimizer, criterion, device,train_loader):
         train_size = train_data[0].size(0)
         tot_train_loss += loss.item()
         tot_train_count += train_size
+        pbar.update(1)
+    pbar.close()
     # if epoch % show_interval == 0:
     logger.info(f'Train epoch :{epoch}, train_loss: {tot_train_loss / tot_train_count}')
 
