@@ -91,7 +91,7 @@ def valid(epoch,model_name,crnn, criterion, device, dataloader,val_loss,early_nu
         save_model_path = os.path.join(checkpoints_dir,
                                        f'{model_name}.pt')
         torch.save(crnn.state_dict(), save_model_path)
-        logger.info(f'save model at {save_model_path}')
+        logger.info(f'save model at {save_model_path}, epoch:{epoch}, loss:{valid_loss}')
     else:
         early_num += 1
     return val_loss,early_num

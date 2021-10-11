@@ -54,7 +54,9 @@ def merge_dataset(p1,p2,p):
     data.to_csv(os.path.join(p, "train_label.csv"), index = False)
 
 if __name__ == '__main__':
-    fix_idx("test",begin=13)
+    merge_dataset("/Users/sjhuang/Documents/docs/dataset/captcha/train_data"
+                  ,"/Users/sjhuang/Documents/docs/dataset/captcha/train",
+                  "/Users/sjhuang/Documents/docs/dataset/captcha/train_data")
     # "/Users/sjhuang/Documents/docs/dataset/captcha/train",
     #                   "/Users/sjhuang/Documents/docs/dataset/captcha/train_data"
 

@@ -21,7 +21,7 @@ crc_train_config = {
    "rnn_hidden": 256,
    "leaky_relu": False,
    "checkpoints_dir":"checkpoints/crc_checkpoints/",
-   "reload_checkpoint": "checkpoints/crc_checkpoints/",
+   "reload_checkpoint": "checkpoints/crc_checkpoints/crc.pt",
    "show_interval": 1,
    'valid_interval': 1,
    "drop_last":True,
