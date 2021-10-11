@@ -1,6 +1,6 @@
 # training model
-
 import os
+from util import  setup_seed
 from  logger import  logger
 import torch
 import  torch.nn.functional as F
@@ -124,7 +124,7 @@ def main(train_data_path,goto_train):
             valid_loss = evaluation['loss']
             valid_acc = evaluation['acc']
             logger.info(f'Valid epoch:{epoch}, loss:{valid_loss}, acc:{valid_acc}')
-            if val_loss < valid_loss:
+            if val_loss > valid_loss:
                 val_loss = valid_loss
                 early_num = 0
                 save_model_path = os.path.join(checkpoints_dir,
@@ -141,7 +141,7 @@ def main(train_data_path,goto_train):
 if __name__ == '__main__':
     import argparse
     seed = 100
-    random.seed(seed)
+    setup_seed(seed)
     parser = argparse.ArgumentParser(description='Train captcha model')
     parser.add_argument('--train_path', type=str,required= False,default= config.train_data_path, help='The path of train dataset')
     parser.add_argument('--goto_train',type=bool,required= False,default= False,help="Train from checkpoint or not")
