@@ -79,13 +79,15 @@ def train_batch(crnn, data, optimizer, criterion, device):
     return loss.item()
 
 
-def main(train_data_path):
+def main(train_data_path,goto_train):
     epochs = crc_train_config['epochs']
+    model_name = crc_train_config['name']
     lr = crc_train_config['lr']
     momentum = crc_train_config['momentum']
     show_interval = crc_train_config['show_interval']
     valid_interval = crc_train_config['valid_interval']
-    save_interval = crc_train_config['save_interval']
+    early_stop = crc_train_config['early_stop']
+    checkpoints_dir = crc_train_config['checkpoints_dir']
     reload_checkpoint = crc_train_config['reload_checkpoint']
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logger.info(f'当前运行环境为device: {device}')
@@ -95,18 +97,15 @@ def main(train_data_path):
                 map_to_seq_hidden=crc_train_config['map_to_seq_hidden'],
                 rnn_hidden=crc_train_config['rnn_hidden'],
                 leaky_relu=crc_train_config['leaky_relu'])
-    # if reload_checkpoint:
-    #     crnn.load_state_dict(torch.load(reload_checkpoint, map_location=device))
+    if goto_train:
+        crnn.load_state_dict(torch.load(reload_checkpoint, map_location=device))
+        logger.info(f"Train from the least model {reload_checkpoint}")
     crnn.to(device)
-
     optimizer = optim.RMSprop(crnn.parameters(), lr=lr,momentum=momentum)
     criterion = CTCLoss(reduction='sum')
     criterion.to(device)
-
-    assert save_interval % valid_interval == 0
-    train_loss = []
-    val_loss = []
-    i = 1
+    early_num = 0
+    val_loss = (1 << 10)
     for epoch in tqdm(range(1, epochs + 1)):
         tot_train_loss = 0.
         tot_train_count = 0
@@ -115,25 +114,28 @@ def main(train_data_path):
             train_size = train_data[0].size(0)
             tot_train_loss += loss
             tot_train_count += train_size
-            if i % show_interval == 0:
-                logger.info(f' epoch:{epoch}, iter:{i}, train_batch_loss [{loss/train_size}]')
-            if i % valid_interval == 0:
-                evaluation = evaluate(crnn, valid_loader, criterion,
-                                      decode_method=crc_train_config['decode_method'],
-                                      beam_size=crc_train_config['beam_size'])
-                print('valid_evaluation: loss={loss}, acc={acc}'.format(**evaluation))
 
-                if i % save_interval == 0:
-                    prefix = 'crc'
-                    loss = evaluation['loss']
-                    save_model_path = os.path.join(crc_train_config['checkpoints_dir'],
-                                                   f'{prefix}_{i:06}_loss{loss}.pt')
-                    torch.save(crnn.state_dict(), save_model_path)
-                    print('save model at ', save_model_path)
-
-            i += 1
-
-        logger.info(f' epoch :{epoch}, train_loss: {tot_train_loss / tot_train_count}')
+        if epoch % show_interval:
+            logger.info(f'Train epoch :{epoch}, train_loss: {tot_train_loss / tot_train_count}')
+        if epoch % valid_interval:
+            evaluation = evaluate(crnn, valid_loader, criterion,
+                                  decode_method=crc_train_config['decode_method'],
+                                  beam_size=crc_train_config['beam_size'])
+            valid_loss = evaluation['loss']
+            valid_acc = evaluation['acc']
+            logger.info(f'Valid epoch:{epoch}, loss:{valid_loss}, acc:{valid_acc}')
+            if val_loss < valid_loss:
+                val_loss = valid_loss
+                early_num = 0
+                save_model_path = os.path.join(checkpoints_dir,
+                                               f'{model_name}_{epoch}_loss{valid_loss}.pt')
+                torch.save(crnn.state_dict(), save_model_path)
+                logger.info('save model at ', save_model_path)
+            else:
+                early_num += 1
+            if early_num > early_stop:
+                logger.info(f"Early Stop in epoch:{epoch}")
+                break
 
 
 if __name__ == '__main__':
@@ -142,5 +144,6 @@ if __name__ == '__main__':
     random.seed(seed)
     parser = argparse.ArgumentParser(description='Train captcha model')
     parser.add_argument('--train_path', type=str,required= False,default= config.train_data_path, help='The path of train dataset')
+    parser.add_argument('--goto_train',type=bool,required= False,default= False,help="Train from checkpoint or not")
     args = parser.parse_args()
-    main(args.train_path)
+    main(args.train_path,args.goto_train)
