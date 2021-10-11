@@ -44,7 +44,7 @@ def train(epoch,show_interval,crnn, optimizer, criterion, device,train_loader):
         tot_train_loss += loss.item()
         tot_train_count += train_size
     # if epoch % show_interval == 0:
-        logger.info(f'Train epoch :{epoch}, train_loss: {tot_train_loss / tot_train_count}')
+    logger.info(f'Train epoch :{epoch}, train_loss: {tot_train_loss / tot_train_count}')
 
 
 def valid(epoch,model_name,crnn, criterion, device, dataloader,val_loss,early_num,checkpoints_dir,
