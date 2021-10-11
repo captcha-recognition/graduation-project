@@ -29,7 +29,7 @@ def train(epoch,show_interval,crnn, optimizer, criterion, device,train_loader,ma
     tot_train_loss = 0.
     tot_train_count = 0
     pbar_total = max_iter if max_iter else len(train_loader)
-    pbar = tqdm(total=pbar_total, desc="Train")
+    pbar = tqdm(total=pbar_total, desc=f"Train, epoch:{epoch}")
     for train_data in train_loader:
         crnn.train()
         images, targets, target_lengths = [d.to(device) for d in train_data]
@@ -59,7 +59,7 @@ def valid(epoch,model_name,crnn, criterion, device, dataloader,val_loss,early_nu
     tot_correct = 0
     wrong_cases = []
     pbar_total = max_iter if max_iter else len(dataloader)
-    pbar = tqdm(total=pbar_total, desc="Evaluate")
+    pbar = tqdm(total=pbar_total, desc=f"Evaluate,epoch:{epoch}")
     with torch.no_grad():
         for i, data in enumerate(dataloader):
             if max_iter and i >= max_iter:
@@ -132,9 +132,12 @@ def main(train_data_path,goto_train):
     val_loss = (1 << 10)
     for epoch in tqdm(range(1, epochs + 1)):
         train(epoch,show_interval,crnn,optimizer,criterion,device,t_loader)
-        val_loss, early_num = valid(epoch,model_name,crnn, criterion, device, valid_loader,val_loss,early_num,checkpoints_dir,
-                           decode_method=crc_train_config['decode_method'],
-                                  beam_size=crc_train_config['beam_size'])
+        if epoch%valid_interval == 0:
+            val_loss, early_num = valid(epoch, model_name, crnn, criterion, device, valid_loader, val_loss, early_num,
+                                        checkpoints_dir,
+                                        decode_method=crc_train_config['decode_method'],
+                                        beam_size=crc_train_config['beam_size'])
+
         if early_num > early_stop:
             logger.info(f"Early Stop in epoch:{epoch}")
             break
