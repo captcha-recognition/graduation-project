@@ -130,7 +130,7 @@ def main(train_data_path,goto_train):
                 save_model_path = os.path.join(checkpoints_dir,
                                                f'{model_name}_{epoch}_loss{valid_loss}.pt')
                 torch.save(crnn.state_dict(), save_model_path)
-                logger.info('save model at ', save_model_path)
+                logger.info(f'save model at {save_model_path}')
             else:
                 early_num += 1
             if early_num > early_stop:
