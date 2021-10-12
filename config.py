@@ -33,7 +33,7 @@ crc_train_config = {
 
 
 ## labels and chars only 英文和数字
-CHARS = '-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+CHARS = '-0123456789abcdefghijklmnopqrstuvwxyz'
 CHAR2LABEL = {char: i for i, char in enumerate(CHARS)}
 LABEL2CHAR = {label: char for char, label in CHAR2LABEL.items()}
 num_class = len(LABEL2CHAR)
