@@ -39,12 +39,12 @@ def train(epoch,show_interval,crnn, optimizer, criterion, device, train_loader):
         input_lengths = torch.LongTensor([logits.size(0)] * batch_size)
         target_lengths = torch.flatten(target_lengths)
         loss = criterion(log_probs, targets, input_lengths, target_lengths)
+        #logger.info(f"loss {loss.item()}, tot_train_count:{tot_train_count}")
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        train_size = train_data[0].size(0)
         tot_train_loss += loss.item()
-        tot_train_count += train_size
+        tot_train_count += 1
         pbar.update(1)
     pbar.close()
     logger.info(f'Train epoch :{epoch}, train_loss: {tot_train_loss / tot_train_count}')
@@ -69,7 +69,7 @@ def valid(epoch,crnn, criterion, device, dataloader,val_loss,early_num,checkpoin
             preds = ctc_decode(log_probs, method=decode_method, beam_size=beam_size)
             reals = targets.cpu().numpy().tolist()
             target_lengths = target_lengths.cpu().numpy().tolist()
-            tot_count += batch
+            tot_count += 1
             tot_loss += loss.item()
             target_length_counter = 0
             for pred, target_length in zip(preds, target_lengths):
@@ -127,7 +127,7 @@ def main(train_data_path,goto_train, model_name):
     assert crnn
     crnn.to(device)
     optimizer = optim.Adam(crnn.parameters(), lr=lr)
-    criterion = CTCLoss(reduction='sum')
+    criterion = CTCLoss()
     criterion.to(device)
     early_num = 0
     val_loss = (1 << 10)

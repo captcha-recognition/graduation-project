@@ -53,4 +53,4 @@ if __name__ == '__main__':
     crnn = CRNN_V2((3, 32, 100), 63)
     print(crnn)
     out = crnn(data)
-    print(data.shape)
+    print(out.shape)
