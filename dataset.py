@@ -78,17 +78,17 @@ def captcha_collate_fn(batch):
     return images, targets, target_lengths
 
 def train_loader(train_path,train_rate = config.train_rate,batch_size = config.batch_size,
-                 height = config.height, weight = config.weight,collate_fn = captcha_collate_fn):
+                 height = config.height, width = config.width,collate_fn = captcha_collate_fn):
     """
     
     :param train_path:  the path of training data
     :param batch_size: 
-    :param x: resize
-    :param y: 
+    :param height resize height
+    :param width: resize width
     :return: 
     """""
     transformer = transforms.Compose(
-        [transforms.Resize((height, weight)),
+        [transforms.Resize((height, width)),
          transforms.ToTensor(),
          ]
     )
@@ -99,7 +99,8 @@ def train_loader(train_path,train_rate = config.train_rate,batch_size = config.b
            dataloader.DataLoader(val_data, batch_size=batch_size, shuffle=True,collate_fn= collate_fn)
 
 
-def test_loader(test_path,batch_size = config.batch_size, height = config.height, weight = config.weight,collate_fn = captcha_collate_fn):
+def test_loader(test_path,batch_size = config.batch_size, height = config.height,
+                width = config.width,collate_fn = captcha_collate_fn):
     """
 
     :param test_path:
@@ -109,13 +110,12 @@ def test_loader(test_path,batch_size = config.batch_size, height = config.height
     :return:
     """
     transformer = transforms.Compose(
-        [transforms.Resize((height, weight)),
+        [transforms.Resize((height, width)),
          transforms.ToTensor(),
          ]
     )
     test_set = CaptchaDataset(test_path,train = False, transformer=transformer)
     return dataloader.DataLoader(test_set, batch_size=batch_size, shuffle=False,collate_fn= collate_fn)
-
 
 
 

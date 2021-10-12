@@ -16,7 +16,7 @@ from ctc import  ctc_decode
 from  tqdm import  tqdm
 
 
-def train(epoch,show_interval,crnn, optimizer, criterion, device,train_loader,max_iter=None,):
+def train(epoch,show_interval,crnn, optimizer, criterion, device,train_loader):
     """
 
     :param epoch:
@@ -30,8 +30,7 @@ def train(epoch,show_interval,crnn, optimizer, criterion, device,train_loader,ma
     """
     tot_train_loss = 0.
     tot_train_count = 0
-    pbar_total = max_iter if max_iter else len(train_loader)
-    pbar = tqdm(total=pbar_total, desc=f"Train, epoch:{epoch}")
+    pbar = tqdm(total=len(train_loader), desc=f"Train, epoch:{epoch}")
     for train_data in train_loader:
         crnn.train()
         images, targets, target_lengths = [d.to(device) for d in train_data]
@@ -49,23 +48,19 @@ def train(epoch,show_interval,crnn, optimizer, criterion, device,train_loader,ma
         tot_train_count += train_size
         pbar.update(1)
     pbar.close()
-    # if epoch % show_interval == 0:
     logger.info(f'Train epoch :{epoch}, train_loss: {tot_train_loss / tot_train_count}')
 
 
 def valid(epoch,model_name,crnn, criterion, device, dataloader,val_loss,early_num,checkpoints_dir,
-          max_iter=None, decode_method='beam_search', beam_size=10):
+          decode_method='beam_search', beam_size=10):
     crnn.eval()
     tot_count = 0
     tot_loss = 0
     tot_correct = 0
     wrong_cases = []
-    pbar_total = max_iter if max_iter else len(dataloader)
-    pbar = tqdm(total=pbar_total, desc=f"Evaluate,epoch:{epoch}")
+    pbar = tqdm(total=len(dataloader), desc=f"Evaluate,epoch:{epoch}")
     with torch.no_grad():
         for i, data in enumerate(dataloader):
-            if max_iter and i >= max_iter:
-                break
             images, targets, target_lengths = [d.to(device) for d in data]
             logits = crnn(images)
             seq_len, batch, num_class = logits.size()
@@ -108,6 +103,7 @@ def main(train_data_path,goto_train):
     epochs = crc_train_config['epochs']
     model_name = crc_train_config['name']
     lr = crc_train_config['lr']
+    m_lr = crc_train_config['m_lr']
     momentum = crc_train_config['momentum']
     show_interval = crc_train_config['show_interval']
     valid_interval = crc_train_config['valid_interval']
@@ -118,7 +114,7 @@ def main(train_data_path,goto_train):
     logger.info(f'当前运行环境为device: {device}')
 
     t_loader,valid_loader = train_loader(train_data_path)
-    crnn = CRNN(config.channel, config.height, config.weight, config.num_class,
+    crnn = CRNN(config.channel, config.height, config.width, config.num_class,
                 map_to_seq_hidden=crc_train_config['map_to_seq_hidden'],
                 rnn_hidden=crc_train_config['rnn_hidden'],
                 leaky_relu=crc_train_config['leaky_relu'])
@@ -133,7 +129,7 @@ def main(train_data_path,goto_train):
     criterion.to(device)
     early_num = 0
     val_loss = (1 << 10)
-    for epoch in tqdm(range(1, epochs + 1)):
+    for epoch in tqdm(range(1, 101)):
         train(epoch,show_interval,crnn,optimizer,criterion,device,t_loader)
         if epoch%valid_interval == 0:
             val_loss, early_num = valid(epoch, model_name, crnn, criterion, device, valid_loader, val_loss, early_num,
@@ -144,7 +140,20 @@ def main(train_data_path,goto_train):
         if early_num > early_stop:
             logger.info(f"Early Stop in epoch:{epoch}")
             break
+    logger.info(" fast train over")
+    optimizer = optim.Adam(crnn.parameters(), lr=m_lr)
+    for epoch in tqdm(range(101, epochs + 1)):
+        train(epoch, show_interval, crnn, optimizer, criterion, device, t_loader)
+        if epoch % valid_interval == 0:
+            val_loss, early_num = valid(epoch, model_name, crnn, criterion, device, valid_loader, val_loss, early_num,
+                                        checkpoints_dir,
+                                        decode_method=crc_train_config['decode_method'],
+                                        beam_size=crc_train_config['beam_size'])
 
+        if early_num > early_stop:
+            logger.info(f"Early Stop in epoch:{epoch}")
+            break
+    logger.info(" All train over")
 if __name__ == '__main__':
     import argparse
     seed = 100

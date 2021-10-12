@@ -1,19 +1,22 @@
 # 数据配置项
 
 ## dataset 相关配置
+import string
+
 train_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/train_data"
 test_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/test"
 train_rate = 0.8
 # resize 大小
 channel = 3
 height = 32
-weight = 100
+width = 100
 batch_size = 64
 
 
 ## cnn_rnn_ctc model params
 crc_train_config = {
-   "lr": 1e-3,
+   "lr": 0.005,
+   "m_lr": 0.0005,
    "momentum": 0.9,
    "epochs":  1000,
    "early_stop": 200,
@@ -33,7 +36,7 @@ crc_train_config = {
 
 
 ## labels and chars only 英文和数字
-CHARS = '-0123456789abcdefghijklmnopqrstuvwxyz'
+CHARS = "-"+string.digits + string.ascii_lowercase
 CHAR2LABEL = {char: i for i, char in enumerate(CHARS)}
 LABEL2CHAR = {label: char for char, label in CHAR2LABEL.items()}
 num_class = len(LABEL2CHAR)

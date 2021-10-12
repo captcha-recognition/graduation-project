@@ -12,7 +12,7 @@ def load_model(checkpoint_path):
     :param checkpoint_path: 模型路径
     :return:
     """
-    crnn = CRNN(config.channel, config.height, config.weight, config.num_class,
+    crnn = CRNN(config.channel, config.height, config.width, config.num_class,
                 map_to_seq_hidden=crc_train_config['map_to_seq_hidden'],
                 rnn_hidden=crc_train_config['rnn_hidden'],
                 leaky_relu=crc_train_config['leaky_relu'])
