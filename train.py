@@ -1,22 +1,21 @@
 # training model
 import os
 import time
-
-from util import  setup_seed
+from util import  setup_seed, make_model
 from  logger import  logger
 import torch
 import  torch.nn.functional as F
 import torch.optim as optim
 from torch.nn import CTCLoss
-from dataset import train_loader,test_loader
+from dataset import train_loader
 from models.crnn import CRNN
-from config import crc_train_config
 import config
+from config import  configs
 from ctc import  ctc_decode
 from  tqdm import  tqdm
 
 
-def train(epoch,show_interval,crnn, optimizer, criterion, device,train_loader):
+def train(epoch,show_interval,crnn, optimizer, criterion, device, train_loader):
     """
 
     :param epoch:
@@ -51,7 +50,7 @@ def train(epoch,show_interval,crnn, optimizer, criterion, device,train_loader):
     logger.info(f'Train epoch :{epoch}, train_loss: {tot_train_loss / tot_train_count}')
 
 
-def valid(epoch,model_name,crnn, criterion, device, dataloader,val_loss,early_num,checkpoints_dir,
+def valid(epoch,crnn, criterion, device, dataloader,val_loss,early_num,checkpoints_dir,
           decode_method='beam_search', beam_size=10):
     crnn.eval()
     tot_count = 0
@@ -91,7 +90,7 @@ def valid(epoch,model_name,crnn, criterion, device, dataloader,val_loss,early_nu
         early_num = 0
         day = time.strftime('%Y%m%d',time.localtime(time.time()))
         save_model_path = os.path.join(checkpoints_dir,
-                                       f'{day}_{model_name}.pt')
+                                       f'{day}_{crnn.name()}.pt')
         torch.save(crnn.state_dict(), save_model_path)
         logger.info(f'save model at {save_model_path}, epoch:{epoch}, loss:{valid_loss}')
     else:
@@ -99,40 +98,43 @@ def valid(epoch,model_name,crnn, criterion, device, dataloader,val_loss,early_nu
     return val_loss,early_num
 
 
-def main(train_data_path,goto_train):
+def main(train_data_path,goto_train, model_name):
+    crc_train_config = configs[model_name]
     epochs = crc_train_config['epochs']
-    model_name = crc_train_config['name']
+    m_epochs = crc_train_config['m_epochs']
     lr = crc_train_config['lr']
     m_lr = crc_train_config['m_lr']
     momentum = crc_train_config['momentum']
+
     show_interval = crc_train_config['show_interval']
     valid_interval = crc_train_config['valid_interval']
     early_stop = crc_train_config['early_stop']
     checkpoints_dir = crc_train_config['checkpoints_dir']
     reload_checkpoint = crc_train_config['reload_checkpoint']
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    logger.info(f'当前运行环境为device: {device}')
-
     t_loader,valid_loader = train_loader(train_data_path)
-    crnn = CRNN(config.channel, config.height, config.width, config.num_class,
-                map_to_seq_hidden=crc_train_config['map_to_seq_hidden'],
-                rnn_hidden=crc_train_config['rnn_hidden'],
-                leaky_relu=crc_train_config['leaky_relu'])
+    crnn = make_model(model_name)
+    logger.info(f'当前运行环境为device: {device}, model:{crnn.name()}')
+    # CRNN((config.channel, config.height, config.width), config.num_class,
+    #         map_to_seq_hidden=crc_train_config['map_to_seq_hidden'],
+    #         rnn_hidden=crc_train_config['rnn_hidden'],
+    #         leaky_relu=crc_train_config['leaky_relu'])
     if goto_train:
         crnn.load_state_dict(torch.load(reload_checkpoint, map_location=device))
         logger.info(f"Train from the least model {reload_checkpoint}")
         # 降低一下学习率
         lr = 1e-4
+    assert crnn
     crnn.to(device)
     optimizer = optim.Adam(crnn.parameters(), lr=lr)
     criterion = CTCLoss(reduction='sum')
     criterion.to(device)
     early_num = 0
     val_loss = (1 << 10)
-    for epoch in tqdm(range(1, 101)):
+    for epoch in tqdm(range(1, m_epochs)):
         train(epoch,show_interval,crnn,optimizer,criterion,device,t_loader)
         if epoch%valid_interval == 0:
-            val_loss, early_num = valid(epoch, model_name, crnn, criterion, device, valid_loader, val_loss, early_num,
+            val_loss, early_num = valid(epoch, crnn, criterion, device, valid_loader, val_loss, early_num,
                                         checkpoints_dir,
                                         decode_method=crc_train_config['decode_method'],
                                         beam_size=crc_train_config['beam_size'])
@@ -142,10 +144,10 @@ def main(train_data_path,goto_train):
             break
     logger.info(" fast train over")
     optimizer = optim.Adam(crnn.parameters(), lr=m_lr)
-    for epoch in tqdm(range(101, epochs + 1)):
+    for epoch in tqdm(range(m_epochs + 1, epochs + m_epochs + 1)):
         train(epoch, show_interval, crnn, optimizer, criterion, device, t_loader)
         if epoch % valid_interval == 0:
-            val_loss, early_num = valid(epoch, model_name, crnn, criterion, device, valid_loader, val_loss, early_num,
+            val_loss, early_num = valid(epoch, crnn, criterion, device, valid_loader, val_loss, early_num,
                                         checkpoints_dir,
                                         decode_method=crc_train_config['decode_method'],
                                         beam_size=crc_train_config['beam_size'])
@@ -154,6 +156,7 @@ def main(train_data_path,goto_train):
             logger.info(f"Early Stop in epoch:{epoch}")
             break
     logger.info(" All train over")
+
 if __name__ == '__main__':
     import argparse
     seed = 100
@@ -161,5 +164,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train captcha model')
     parser.add_argument('--train_path', type=str,required= False,default= config.train_data_path, help='The path of train dataset')
     parser.add_argument('--goto_train',type=bool,required= False,default= False,help="Train from checkpoint or not")
+    parser.add_argument('--model',type=str,required=False,default='crnn', help='The model of to be train')
     args = parser.parse_args()
-    main(args.train_path,args.goto_train)
+    main(args.train_path,args.goto_train,args.model)

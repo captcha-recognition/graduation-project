@@ -7,7 +7,17 @@ import  os
 import pandas as pd
 
 def generator(width,height,num,label_length,characters,path):
-    generator = ImageCaptcha(width=width, height=height)
+    """
+
+    :param width:
+    :param height:
+    :param num:
+    :param label_length:
+    :param characters:
+    :param path:
+    :return:
+    """
+    generator = ImageCaptcha(width,height,font_sizes=(21, 25, 28))
     labels = []
     imgs = []
     for idx in tqdm(range(1,num+1)):
