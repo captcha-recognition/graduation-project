@@ -53,9 +53,31 @@ crc_v2_train_config = {
    "beam_size":10,
 }
 
+
+resnet_rnn_train_config = {
+   "lr": 1e-3,
+   "m_lr": 1e-4,
+   "momentum": 0.9,
+   "epochs":  30,
+   "m_epochs":1000,
+   "early_stop": 200,
+   "map_to_seq_hidden": 2048,
+   "rnn_hidden": 128,
+   "leaky_relu": False,
+   "checkpoints_dir":"checkpoints/crc_checkpoints/",
+   "reload_checkpoint": "checkpoints/crc_checkpoints/crc.pt",
+   "show_interval": 1,
+   'valid_interval': 3,
+   "drop_last":True,
+   "num_workers":3,
+   "decode_method":"greedy",
+   "beam_size":10,
+}
+
 configs = {
    'crnn':crc_train_config,
    'crnn_v2':crc_v2_train_config,
+   'resnet_rnn':resnet_rnn_train_config,
 }
 
 ## labels and chars only 英文和数字
