@@ -26,7 +26,7 @@ if __name__ == '__main__':
     path = "/Users/sjhuang/Documents/docs/dataset/captcha/captcha_generator"
     width = 100
     height = 32
-    num = 50000
+    num = 200000
     label_length = 4
     characters = '-' + string.digits + string.ascii_uppercase + string.ascii_lowercase
     generator(width,height,num,label_length,characters,path)

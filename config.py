@@ -5,7 +5,7 @@ import string
 
 train_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/train_data"
 test_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/test"
-train_rate = 0.8
+train_rate = 0.9
 # resize 大小
 channel = 3
 height = 32
@@ -15,8 +15,8 @@ batch_size = 64
 
 ## cnn_rnn_ctc model params
 crc_train_config = {
-   "lr": 0.005,
-   "m_lr": 0.0005,
+   "lr": 1e-3,
+   "m_lr": 1e-4,
    "momentum": 0.9,
    "epochs":  1000,
    "early_stop": 200,
