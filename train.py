@@ -34,9 +34,9 @@ def train(epoch,show_interval,crnn, optimizer, criterion, device, train_loader):
         crnn.train()
         images, targets, target_lengths = [d.to(device) for d in train_data]
         logits = crnn(images)
+        seq_len, batch, num_class = logits.size()
         log_probs = F.log_softmax(logits, dim=2)
-        batch_size = images.size(0)
-        input_lengths = torch.LongTensor([logits.size(0)] * batch_size)
+        input_lengths = torch.LongTensor([seq_len] * batch)
         target_lengths = torch.flatten(target_lengths)
         loss = criterion(log_probs, targets, input_lengths, target_lengths)
         #logger.info(f"loss {loss.item()}, tot_train_count:{tot_train_count}")
@@ -131,7 +131,7 @@ def main(train_data_path,goto_train, model_name):
     criterion.to(device)
     early_num = 0
     val_loss = (1 << 10)
-    for epoch in tqdm(range(1, m_epochs)):
+    for epoch in tqdm(range(1, epochs)):
         train(epoch,show_interval,crnn,optimizer,criterion,device,t_loader)
         if epoch%valid_interval == 0:
             val_loss, early_num = valid(epoch, crnn, criterion, device, valid_loader, val_loss, early_num,
@@ -144,7 +144,7 @@ def main(train_data_path,goto_train, model_name):
             break
     logger.info(" fast train over")
     optimizer = optim.Adam(crnn.parameters(), lr=m_lr)
-    for epoch in tqdm(range(m_epochs + 1, epochs + m_epochs + 1)):
+    for epoch in tqdm(range(epochs + 1, epochs + m_epochs + 1)):
         train(epoch, show_interval, crnn, optimizer, criterion, device, t_loader)
         if epoch % valid_interval == 0:
             val_loss, early_num = valid(epoch, crnn, criterion, device, valid_loader, val_loss, early_num,

@@ -20,7 +20,7 @@ crc_train_config = {
    "epochs":  60,
    "m_epochs":1000,
    "early_stop": 200,
-   "map_to_seq_hidden": 64,
+   "map_to_seq_hidden": 512,
    "rnn_hidden": 256,
    "leaky_relu": False,
    "checkpoints_dir":"checkpoints/crc_checkpoints/",
