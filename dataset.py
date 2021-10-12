@@ -44,7 +44,11 @@ class CaptchaDataset(dataset.Dataset):
             self.image_paths = list(data['ID'].values)
             assert len(self.labels) == len(self.image_paths)
         else:
-            self.image_paths = os.listdir(self.root)
+            paths = os.listdir(self.root)
+            self.image_paths = []
+            for path in paths:
+                if path.endswith(".png") or path.endswith(".jpg") or path.endswith("jpeg"):
+                    self.image_paths.append(path)
         assert self.image_paths
 
 
@@ -67,7 +71,7 @@ class CaptchaDataset(dataset.Dataset):
             img = self.transformer(img)
             return img, target, target_length
         else:
-            return self.transformer(img)
+            return image_path, self.transformer(img)
 
 def captcha_collate_fn(batch):
 
@@ -100,7 +104,7 @@ def train_loader(train_path,train_rate = config.train_rate,batch_size = config.b
 
 
 def test_loader(test_path,batch_size = config.batch_size, height = config.height,
-                width = config.width,collate_fn = captcha_collate_fn):
+                width = config.width):
     """
 
     :param test_path:
@@ -115,7 +119,7 @@ def test_loader(test_path,batch_size = config.batch_size, height = config.height
          ]
     )
     test_set = CaptchaDataset(test_path,train = False, transformer=transformer)
-    return dataloader.DataLoader(test_set, batch_size=batch_size, shuffle=False,collate_fn= collate_fn)
+    return dataloader.DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
 
 

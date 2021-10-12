@@ -4,7 +4,7 @@
 import string
 
 train_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/train_data"
-test_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/test"
+test_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/test_data"
 train_rate = 0.9
 # resize 大小
 channel = 3
@@ -36,7 +36,7 @@ crc_train_config = {
 
 
 ## labels and chars only 英文和数字
-CHARS = "-"+string.digits + string.ascii_lowercase
+CHARS = "-"+ string.digits + string.ascii_lowercase + string.ascii_uppercase
 CHAR2LABEL = {char: i for i, char in enumerate(CHARS)}
 LABEL2CHAR = {label: char for char, label in CHAR2LABEL.items()}
 num_class = len(LABEL2CHAR)
