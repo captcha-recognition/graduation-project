@@ -39,7 +39,7 @@ def train(epoch,show_interval,crnn, optimizer, criterion, device, train_loader):
         input_lengths = torch.LongTensor([seq_len] * batch)
         target_lengths = torch.flatten(target_lengths)
         loss = criterion(log_probs, targets, input_lengths, target_lengths)
-        logger.info(f"loss {loss.item()}, tot_train_count:{tot_train_count}")
+        #logger.info(f"loss {loss.item()}, tot_train_count:{tot_train_count}")
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
