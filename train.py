@@ -56,6 +56,7 @@ def valid(epoch,crnn, criterion, device, dataloader,val_loss,early_num,checkpoin
     tot_count = 0
     tot_loss = 0
     tot_correct = 0
+    batch_count = 0
     wrong_cases = []
     pbar = tqdm(total=len(dataloader), desc=f"Evaluate,epoch:{epoch}")
     with torch.no_grad():
@@ -69,9 +70,10 @@ def valid(epoch,crnn, criterion, device, dataloader,val_loss,early_num,checkpoin
             preds = ctc_decode(log_probs, method=decode_method, beam_size=beam_size)
             reals = targets.cpu().numpy().tolist()
             target_lengths = target_lengths.cpu().numpy().tolist()
-            tot_count += batch
+            batch_count += 1
             tot_loss += loss.item()
             target_length_counter = 0
+            tot_count += batch
             for pred, target_length in zip(preds, target_lengths):
                 real = reals[target_length_counter:target_length_counter + target_length]
                 target_length_counter += target_length
@@ -82,7 +84,7 @@ def valid(epoch,crnn, criterion, device, dataloader,val_loss,early_num,checkpoin
             pbar.update(1)
         pbar.close()
 
-    valid_loss = tot_loss * batch / tot_count
+    valid_loss = tot_loss / batch_count
     valid_acc = tot_correct / tot_count
     logger.info(f'Valid epoch:{epoch}, loss:{valid_loss}, acc:{valid_acc}')
     if val_loss > valid_loss:
