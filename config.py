@@ -10,7 +10,7 @@ train_rate = 0.9
 channel = 3
 height = 32
 width = 100
-batch_size = 64
+batch_size = 128
 
 
 ## cnn_rnn_ctc model params
