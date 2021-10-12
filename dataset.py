@@ -64,6 +64,7 @@ class CaptchaDataset(dataset.Dataset):
         if self.train:
             label = self.labels[idx]
             label = label.lower()
+            #print(label)
             target = [config.CHAR2LABEL[c] for c in label]
             target_length = [len(target)]
             target = torch.LongTensor(target)
