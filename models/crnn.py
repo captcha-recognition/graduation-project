@@ -5,7 +5,7 @@ from models.simple_cnn import SimpleCNN
 class CRNN(nn.Module):
 
     def __init__(self,input_shape, num_class,
-                 map_to_seq_hidden=64, rnn_hidden=256, leaky_relu=False):
+                 map_to_seq_hidden= 512, rnn_hidden=256, leaky_relu=False):
         super(CRNN, self).__init__()
         (img_channel, img_height, img_width) = input_shape
         self.cnn = SimpleCNN(img_channel, img_height, img_width, leaky_relu)
