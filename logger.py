@@ -9,7 +9,7 @@ logger = logging.getLogger()
 # 日志等级小于 level 会被忽略。严重性为 level 或更高的日志消息将由该记录器的任何一个或多个处理器发出，除非将处理器的级别设置为比 level 更高的级别。
 logger.setLevel(logging.INFO)
 
-rq = time.strftime('%Y%m%d',time.localtime(time.time()) )
+rq = time.strftime('%Y%m%d',time.localtime(time.time()))
 log_name = os.path.join('log/',rq + '.log')
 
 # 将日志消息发送到磁盘文件，默认情况下文件大小会无限增长

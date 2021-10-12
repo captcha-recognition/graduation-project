@@ -1,5 +1,7 @@
 # training model
 import os
+import time
+
 from util import  setup_seed
 from  logger import  logger
 import torch
@@ -92,8 +94,9 @@ def valid(epoch,model_name,crnn, criterion, device, dataloader,val_loss,early_nu
     if val_loss > valid_loss:
         val_loss = valid_loss
         early_num = 0
+        day = time.strftime('%Y%m%d',time.localtime(time.time()))
         save_model_path = os.path.join(checkpoints_dir,
-                                       f'{model_name}.pt')
+                                       f'{day}_{model_name}.pt')
         torch.save(crnn.state_dict(), save_model_path)
         logger.info(f'save model at {save_model_path}, epoch:{epoch}, loss:{valid_loss}')
     else:
