@@ -20,7 +20,7 @@ crc_train_config = {
    "momentum": 0.9,
    "epochs":  30,
    "m_epochs":1000,
-   "early_stop": 200,
+   "early_stop": 10,
    "map_to_seq_hidden": 512,
    "rnn_hidden": 256,
    "leaky_relu": False,
@@ -30,7 +30,7 @@ crc_train_config = {
    'valid_interval': 3,
    "drop_last":True,
    "num_workers":3,
-   "decode_method":"beam_search",
+   "decode_method":"greedy",
    "beam_size":10,
 }
 
