@@ -127,7 +127,7 @@ def main(train_data_path,goto_train, model_name):
         lr = 1e-4
     assert crnn
     crnn.to(device)
-    optimizer = optim.SGD(crnn.parameters(), lr=lr,momentum= momentum)
+    optimizer = optim.Adam(crnn.parameters(), lr=lr)
     criterion = CTCLoss()
     criterion.to(device)
     early_num = 0
