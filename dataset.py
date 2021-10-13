@@ -63,7 +63,7 @@ class CaptchaDataset(dataset.Dataset):
         img = img.convert("RGB")
         if self.train:
             label = self.labels[idx]
-            label = label.lower()
+            #label = label.lower()
             #print(label)
             target = [config.CHAR2LABEL[c] for c in label]
             target_length = [len(target)]

@@ -33,10 +33,10 @@ def generator(width,height,num,label_length,characters,path):
 
 
 if __name__ == '__main__':
-    path = "/Users/sjhuang/Documents/docs/dataset/captcha/captcha_generator"
+    path = "/Users/sjhuang/Documents/docs/dataset/unlabel_data/unlabel_captcha_generator"
     width = 100
     height = 32
-    num = 200000
+    num = 1000
     label_length = 4
     characters = '-' + string.digits + string.ascii_uppercase + string.ascii_lowercase
     generator(width,height,num,label_length,characters,path)

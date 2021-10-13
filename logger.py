@@ -9,29 +9,35 @@ logger = logging.getLogger()
 # 日志等级小于 level 会被忽略。严重性为 level 或更高的日志消息将由该记录器的任何一个或多个处理器发出，除非将处理器的级别设置为比 level 更高的级别。
 logger.setLevel(logging.INFO)
 
-rq = time.strftime('%Y%m%d',time.localtime(time.time()))
-pid = os.getpid()
-log_name = os.path.join('log/',str(pid)+"_" + rq + '.log')
+def init_log(model_name):
+    """
+    :param model_name:
+    :return:
+    """
+    rq = time.strftime('%Y%m%d', time.localtime(time.time()))
+    pid = os.getpid()
+    log_name = os.path.join('log/', str(pid)+"_"+model_name + "_" + rq + '.log')
 
-# 将日志消息发送到磁盘文件，默认情况下文件大小会无限增长
-fh = logging.FileHandler(log_name, mode='w')
-# setLevel(level)：给处理器设置阈值为 level。
-# 日志级别小于 level 将被忽略。创建处理器时，日志级别被设置为 NOTSET （所有的消息都会被处理）
-# debug<info<warning<error<critical
-fh.setLevel(logging.DEBUG)
+    # 将日志消息发送到磁盘文件，默认情况下文件大小会无限增长
+    fh = logging.FileHandler(log_name, mode='w')
+    # setLevel(level)：给处理器设置阈值为 level。
+    # 日志级别小于 level 将被忽略。创建处理器时，日志级别被设置为 NOTSET （所有的消息都会被处理）
+    # debug<info<warning<error<critical
+    fh.setLevel(logging.DEBUG)
 
-#Formater对象用于配置日志信息的最终顺序、结构和内容。与logging.Handler基类不同的是，应用代码可以直接实例化Formatter类。
-formatter = logging.Formatter("%(asctime)s - %(filename)s[line:%(lineno)d] -%(levelname)s:%(message)s")
-# setFormatter(fmt): 将此处理器的 Formatter 设置为 fmt。
-fh.setFormatter(formatter)
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-# tell the handler to use this format
-console.setFormatter(formatter)
-# addHandler(hdlr):将指定的处理器hdlr添加到此记录器。
-logger.addHandler(fh)
-logger.addHandler(console)
+    # Formater对象用于配置日志信息的最终顺序、结构和内容。与logging.Handler基类不同的是，应用代码可以直接实例化Formatter类。
+    formatter = logging.Formatter(f"[{model_name}]->" + "%(asctime)s - %(filename)s[line:%(lineno)d] -%(levelname)s:%(message)s" )
+    # setFormatter(fmt): 将此处理器的 Formatter 设置为 fmt。
+    fh.setFormatter(formatter)
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    # tell the handler to use this format
+    console.setFormatter(formatter)
+    # addHandler(hdlr):将指定的处理器hdlr添加到此记录器。
+    logger.addHandler(fh)
+    logger.addHandler(console)
+
+
 
 
 

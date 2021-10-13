@@ -8,6 +8,7 @@ from config import crc_train_config
 from logger import logger
 from tqdm import tqdm
 from ctc import ctc_decode
+from logger import init_log
 
 def load_model(checkpoint_path, device,model_name):
     """
@@ -17,7 +18,7 @@ def load_model(checkpoint_path, device,model_name):
     """
     crnn = util.make_model(model_name)
     crnn.load_state_dict(torch.load(checkpoint_path, map_location=device))
-    logger.info(f"Train from the least model {checkpoint_path}, model {crnn.name()}")
+    logger.info(f"Predict from the least model {checkpoint_path}, model {crnn.name()}")
     return crnn
 
 
@@ -46,6 +47,7 @@ def show_result(paths, preds):
         text = ''.join(pred)
         print(f'{path} > {text}')
 
+
 def main(test_path,checkpoint_path,model_name,decode_method = "beam_search",beam_size = 10):
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -70,4 +72,5 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, required=True, default='crnn',
                         help='The mode of predict')
     args = parser.parse_args()
+    init_log(args.model)
     main(args.test_path, args.checkpoint_path,args.model)

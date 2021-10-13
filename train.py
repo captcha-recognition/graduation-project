@@ -13,7 +13,7 @@ import config
 from config import  configs
 from ctc import  ctc_decode
 from  tqdm import  tqdm
-
+from logger import  init_log
 
 def train(epoch,show_interval,crnn, optimizer, criterion, device, train_loader):
     """
@@ -168,4 +168,5 @@ if __name__ == '__main__':
     parser.add_argument('--goto_train',type=bool,required= False,default= False,help="Train from checkpoint or not")
     parser.add_argument('--model',type=str,required=False,default='crnn', help='The model of to be train')
     args = parser.parse_args()
+    init_log(args.model)
     main(args.train_path,args.goto_train,args.model)
