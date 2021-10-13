@@ -40,7 +40,7 @@ crc_v2_train_config = {
    "momentum": 0.9,
    "epochs":  30,
    "m_epochs":1000,
-   "early_stop": 200,
+   "early_stop": 10,
    "map_to_seq_hidden": 256,
    "rnn_hidden": 128,
    "leaky_relu": False,
@@ -61,7 +61,7 @@ resnet_rnn_train_config = {
    "momentum": 0.9,
    "epochs":  30,
    "m_epochs":1000,
-   "early_stop": 200,
+   "early_stop": 10,
    "map_to_seq_hidden": 2048,
    "rnn_hidden": 128,
    "leaky_relu": False,
@@ -82,8 +82,8 @@ configs = {
 }
 
 ## labels and chars only 英文和数字
-#CHARS = "-"+ string.digits + string.ascii_lowercase
-CHARS = "-"+ string.digits + string.ascii_lowercase + string.ascii_uppercase
+CHARS = "-"+ string.digits + string.ascii_lowercase
+#CHARS = "-"+ string.digits + string.ascii_lowercase + string.ascii_uppercase
 CHAR2LABEL = {char: i for i, char in enumerate(CHARS)}
 LABEL2CHAR = {label: char for char, label in CHAR2LABEL.items()}
 num_class = len(LABEL2CHAR)

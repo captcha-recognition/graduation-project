@@ -49,7 +49,7 @@ def train(epoch,show_interval,crnn, optimizer, criterion, device, train_loader):
     logger.info(f'Train epoch :{epoch}, train_loss: {tot_train_loss / tot_train_count}')
 
 
-def valid(epoch,crnn, criterion, device, dataloader,val_acc,early_num,checkpoints_dir,
+def valid(epoch,crnn, criterion, device, dataloader,val_loss,early_num,checkpoints_dir,
           decode_method='beam_search', beam_size=10):
     crnn.eval()
     tot_count = 0
@@ -86,17 +86,17 @@ def valid(epoch,crnn, criterion, device, dataloader,val_acc,early_num,checkpoint
     valid_loss = tot_loss / batch_count
     valid_acc = tot_correct / tot_count
     logger.info(f'Valid epoch:{epoch}, loss:{valid_loss}, acc:{valid_acc}')
-    if val_acc < valid_acc:
-        val_acc = valid_acc
+    if val_loss > valid_loss:
+        val_loss = valid_loss
         early_num = 0
-        day = time.strftime('%Y%m%d', time.localtime(time.time()))
+        day = time.strftime('%Y%m%d',time.localtime(time.time()))
         save_model_path = os.path.join(checkpoints_dir,
                                        f'{day}_{crnn.name()}.pt')
         torch.save(crnn.state_dict(), save_model_path)
-        logger.info(f'save model at {save_model_path}, epoch:{epoch}, loss:{valid_loss},acc:{val_acc}')
+        logger.info(f'save model at {save_model_path}, epoch:{epoch}, loss:{valid_loss}')
     else:
         early_num += 1
-    return val_acc,early_num
+    return val_loss,early_num
 
 
 def main(train_data_path,goto_train, model_name):
@@ -127,15 +127,15 @@ def main(train_data_path,goto_train, model_name):
         lr = 1e-4
     assert crnn
     crnn.to(device)
-    optimizer = optim.SGD(crnn.parameters(), lr=lr,momentum= momentum)
+    optimizer = optim.Adam(crnn.parameters(), lr=lr)
     criterion = CTCLoss()
     criterion.to(device)
     early_num = 0
-    val_acc = 0.0
+    val_loss = (1 << 10)
     for epoch in tqdm(range(1, epochs)):
         train(epoch,show_interval,crnn,optimizer,criterion,device,t_loader)
         if epoch%valid_interval == 0:
-            val_acc, early_num = valid(epoch, crnn, criterion, device, valid_loader, val_acc, early_num,
+            val_loss, early_num = valid(epoch, crnn, criterion, device, valid_loader, val_loss, early_num,
                                         checkpoints_dir,
                                         decode_method=crc_train_config['decode_method'],
                                         beam_size=crc_train_config['beam_size'])
@@ -144,11 +144,11 @@ def main(train_data_path,goto_train, model_name):
             logger.info(f"Early Stop in epoch:{epoch}")
             break
     logger.info(" fast train over")
-    optimizer = optim.SGD(crnn.parameters(), lr=m_lr,momentum= momentum)
+    optimizer = optim.Adam(crnn.parameters(), lr=m_lr)
     for epoch in tqdm(range(epochs + 1, epochs + m_epochs + 1)):
         train(epoch, show_interval, crnn, optimizer, criterion, device, t_loader)
         if epoch % valid_interval == 0:
-            val_acc, early_num = valid(epoch, crnn, criterion, device, valid_loader, val_acc, early_num,
+            val_loss, early_num = valid(epoch, crnn, criterion, device, valid_loader, val_loss, early_num,
                                         checkpoints_dir,
                                         decode_method=crc_train_config['decode_method'],
                                         beam_size=crc_train_config['beam_size'])

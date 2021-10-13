@@ -1,7 +1,9 @@
+import pandas as pd
 import torch
 import torch.nn.functional as F
 import dataset
 import util
+import os
 from models.crnn import CRNN
 import config
 from config import crc_train_config
@@ -47,11 +49,26 @@ def show_result(paths, preds):
         text = ''.join(pred)
         print(f'{path} > {text}')
 
+def show_label_result(paths,preds,labels):
 
-def main(test_path,checkpoint_path,model_name,decode_method = "beam_search",beam_size = 10):
+    print('\n===== result =====')
+    total = len(paths)
+    acc = 0
+    for path, pred in zip(paths, preds):
+        text = ''.join(pred)
+        img_path = path.split('/')[-1]
+        real = labels[img_path]
+        print(f'{path}: {real}> {text}')
+        if real == text or real.lower() == text.lower():
+            acc += 1
+    print(f"acc: {acc}/{total} {acc*1.0/total}")
+
+
+
+def main(test_path,checkpoint_path,model_name,has_label = False,decode_method = "beam_search",beam_size = 10):
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f'device: {device}')
+    print(f'device: {device}, model_name {model_name} has_label {has_label}')
     predict_loader = dataset.test_loader(test_path)
     crnn = load_model(checkpoint_path,device,model_name)
     crnn.load_state_dict(torch.load(checkpoint_path, map_location=device))
@@ -59,8 +76,15 @@ def main(test_path,checkpoint_path,model_name,decode_method = "beam_search",beam
 
     preds,images = predict(crnn, predict_loader,config.LABEL2CHAR, device,
                            decode_method = decode_method,beam_size=beam_size)
+    if has_label:
+        data = pd.read_csv(os.path.join(test_path,'train_label.csv'))
+        keys = list(data['ID'].values)
+        values = list(data['label'].values)
+        labels = {k:v for k,v in zip(keys,values)}
+        show_label_result(images, preds,labels)
+    else:
+        show_result(images, preds)
 
-    show_result(images, preds)
 
 
 if __name__ == '__main__':
@@ -71,6 +95,8 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint_path', type=str, required=True,help='The path of test dataset')
     parser.add_argument('--model', type=str, required=True, default='crnn',
                         help='The mode of predict')
+    parser.add_argument('--has_label', type=bool, required=False, default=False,
+                        help='The mode of predict')
     args = parser.parse_args()
     init_log(args.model)
-    main(args.test_path, args.checkpoint_path,args.model)
+    main(args.test_path, args.checkpoint_path,args.model,args.has_label)
