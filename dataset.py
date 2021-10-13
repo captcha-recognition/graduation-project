@@ -104,7 +104,7 @@ def train_loader(train_path,train_rate = config.train_rate,batch_size = config.b
            dataloader.DataLoader(val_data, batch_size=batch_size, shuffle=True,collate_fn= collate_fn)
 
 
-def test_loader(test_path,batch_size = config.batch_size, height = config.height,
+def test_loader(test_path,batch_size = config.test_batch_size, height = config.height,
                 width = config.width):
     """
 

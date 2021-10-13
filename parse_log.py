@@ -28,11 +28,13 @@ def parse_log(path):
                 valid_loss.append(loss)
                 valid_acc.append(acc)
 
+    print(max(valid_acc))
     return train_loss,train_epoch,valid_loss,valid_epoch,valid_acc
 
 
 def plt_show(path):
     train_loss, train_epoch, valid_loss, valid_epoch, valid_acc = parse_log(path)
+    log_name = path.split('.')[-2]
     plt.subplot(211)
     plt.plot(train_epoch,train_loss,c = 'r',label = 'train loss')
     plt.plot(valid_epoch,valid_loss,c = 'b',label = 'valid loss')
@@ -46,11 +48,11 @@ def plt_show(path):
     plt.ylabel('valid acc')
     plt.title('acc figure')
     plt.legend()
-    plt.savefig("loss_acc.png")
+    plt.savefig(f"{log_name}_loss_acc.png")
     plt.tight_layout()
     plt.show()
 
 
 if __name__ == '__main__':
-    path ="log/20211011.log"
+    path ="log/16961_20211012.log"
     plt_show(path)
