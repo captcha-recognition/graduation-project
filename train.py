@@ -85,7 +85,7 @@ def valid(epoch,crnn, criterion, device, dataloader,val_acc,early_num,checkpoint
 
     valid_loss = tot_loss / batch_count
     valid_acc = tot_correct / tot_count
-    logger.info(f'Valid epoch:{epoch}, loss:{valid_loss}, acc:{valid_acc}')
+    logger.info(f'Valid epoch:{epoch}, loss:{valid_loss}, acc:{valid_acc} ')
     if val_acc < valid_acc:
         val_acc = valid_acc
         early_num = 0
@@ -93,13 +93,13 @@ def valid(epoch,crnn, criterion, device, dataloader,val_acc,early_num,checkpoint
         save_model_path = os.path.join(checkpoints_dir,
                                        f'{day}_{crnn.name()}.pt')
         torch.save(crnn.state_dict(), save_model_path)
-        logger.info(f'save model at {save_model_path}, epoch:{epoch}, loss:{valid_loss},acc:{val_acc}')
+        logger.info(f'save model at {save_model_path}, epoch:{epoch}, loss:{valid_loss},acc:{val_acc} ')
     else:
         early_num += 1
     return val_acc,early_num
 
 
-def main(train_data_path,goto_train, model_name):
+def main(train_data_path,goto_train, model_name,reload_checkpoint = None):
     crc_train_config = configs[model_name]
     epochs = crc_train_config['epochs']
     m_epochs = crc_train_config['m_epochs']
@@ -111,7 +111,8 @@ def main(train_data_path,goto_train, model_name):
     valid_interval = crc_train_config['valid_interval']
     early_stop = crc_train_config['early_stop']
     checkpoints_dir = crc_train_config['checkpoints_dir']
-    reload_checkpoint = crc_train_config['reload_checkpoint']
+    if reload_checkpoint is None:
+        reload_checkpoint = crc_train_config['reload_checkpoint']
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     t_loader,valid_loader = train_loader(train_data_path)
     crnn = make_model(model_name)
@@ -162,6 +163,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_path', type=str,required= False,default= config.train_data_path, help='The path of train dataset')
     parser.add_argument('--goto_train',type=bool,required= False,default= False,help="Train from checkpoint or not")
     parser.add_argument('--model',type=str,required=False,default='crnn', help='The model of to be train')
+    parser.add_argument('--reload_checkpoint',type=str,required=False, help='The pretrain params')
     args = parser.parse_args()
     init_log(args.model)
-    main(args.train_path,args.goto_train,args.model)
+    main(args.train_path,args.goto_train,args.model,args.reload_checkpoint)
