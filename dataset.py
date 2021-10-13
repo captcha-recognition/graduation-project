@@ -13,8 +13,6 @@ import config
 from logger import  logger
 
 
-
-
 class CaptchaDataset(dataset.Dataset):
     """
     ## 加载数据，数据格式为
@@ -83,7 +81,8 @@ def captcha_collate_fn(batch):
     return images, targets, target_lengths
 
 def train_loader(train_path,train_rate = config.train_rate,batch_size = config.batch_size,
-                 height = config.height, width = config.width,collate_fn = captcha_collate_fn):
+                 height = config.height, width = config.width,collate_fn = captcha_collate_fn,
+                 transformer = None):
     """
     
     :param train_path:  the path of training data
@@ -92,11 +91,15 @@ def train_loader(train_path,train_rate = config.train_rate,batch_size = config.b
     :param width: resize width
     :return: 
     """""
-    transformer = transforms.Compose(
-        [transforms.Resize((height, width)),
-         transforms.ToTensor(),
-         ]
-    )
+    if transformer is None:
+        transformer = transforms.Compose(
+            [
+             transforms.RandomAffine((0.9,1.1)),
+             transforms.RandomRotation(8),
+             transforms.Resize((height, width)),
+             transforms.ToTensor(),
+             ]
+        )
     train_set = CaptchaDataset(train_path, transformer=transformer)
     train_len = int(len(train_set)*train_rate)
     train_data, val_data = torch.utils.data.random_split(train_set,[train_len,len(train_set)-train_len])
@@ -105,7 +108,7 @@ def train_loader(train_path,train_rate = config.train_rate,batch_size = config.b
 
 
 def test_loader(test_path,batch_size = config.test_batch_size, height = config.height,
-                width = config.width):
+                width = config.width,transformer = None):
     """
 
     :param test_path:
@@ -114,7 +117,8 @@ def test_loader(test_path,batch_size = config.test_batch_size, height = config.h
     :param y:
     :return:
     """
-    transformer = transforms.Compose(
+    if transformer is None:
+        transformer = transforms.Compose(
         [transforms.Resize((height, width)),
          transforms.ToTensor(),
          ]
