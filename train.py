@@ -115,7 +115,7 @@ def main(train_data_path,goto_train, model_name):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     t_loader,valid_loader = train_loader(train_data_path)
     crnn = make_model(model_name)
-    logger.info(f'当前运行环境为device: {device}, model:{crnn.name()}')
+    logger.info(f'当前运行环境为device: {device}, config:{crc_train_config}')
     # CRNN((config.channel, config.height, config.width), config.num_class,
     #         map_to_seq_hidden=crc_train_config['map_to_seq_hidden'],
     #         rnn_hidden=crc_train_config['rnn_hidden'],
