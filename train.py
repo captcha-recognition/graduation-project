@@ -139,10 +139,6 @@ def main(train_data_path,goto_train, model_name):
                                         checkpoints_dir,
                                         decode_method=crc_train_config['decode_method'],
                                         beam_size=crc_train_config['beam_size'])
-
-        if early_num > early_stop:
-            logger.info(f"Early Stop in epoch:{epoch}")
-            break
     logger.info(" fast train over")
     optimizer = optim.SGD(crnn.parameters(), lr=m_lr,momentum= momentum)
     for epoch in tqdm(range(epochs + 1, epochs + m_epochs + 1)):
