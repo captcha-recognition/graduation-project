@@ -6,3 +6,4 @@ log/*
 .DS_Store
 *.pt
 checkpoints/crc_checkpoints/*
+pres/data
