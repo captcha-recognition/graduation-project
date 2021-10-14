@@ -56,8 +56,8 @@ crc_v2_train_config = {
 
 
 resnet_rnn_train_config = {
-   "lr": 1e-5,
-   "m_lr": 1e-6,
+   "lr": 1e-4,
+   "m_lr": 1e-4,
    "momentum": 0.9,
    "epochs":  30,
    "m_epochs":1000,
