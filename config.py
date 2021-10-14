@@ -13,6 +13,9 @@ width = 100
 batch_size = 128
 test_batch_size = 32
 
+mean=(0.485, 0.456, 0.406)
+std=(0.229, 0.224, 0.225)
+
 ## cnn_rnn_ctc model params
 crc_train_config = {
    "lr": 1e-3,

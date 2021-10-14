@@ -94,10 +94,11 @@ def train_loader(train_path,train_rate = config.train_rate,batch_size = config.b
     if transformer is None:
         transformer = transforms.Compose(
             [
-             transforms.RandomAffine((0.9,1.1)),
-             transforms.RandomRotation(8),
-             transforms.Resize((height, width)),
-             transforms.ToTensor(),
+              # transforms.RandomAffine((0.9,1.1)),
+              # transforms.RandomRotation(8),
+              transforms.Resize((height, width)),
+              transforms.ToTensor(),
+              transforms.Normalize(mean=config.mean,std= config.std)
              ]
         )
     train_set = CaptchaDataset(train_path, transformer=transformer)
@@ -121,6 +122,7 @@ def test_loader(test_path,batch_size = config.test_batch_size, height = config.h
         transformer = transforms.Compose(
         [transforms.Resize((height, width)),
          transforms.ToTensor(),
+         transforms.Normalize(mean=config.mean, std=config.std)
          ]
     )
     test_set = CaptchaDataset(test_path,train = False, transformer=transformer)
