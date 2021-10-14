@@ -54,6 +54,7 @@ def show_label_result(paths,preds,labels):
     print('\n===== result =====')
     total = len(paths)
     acc = 0
+    errors = []
     for path, pred in zip(paths, preds):
         text = ''.join(pred)
         img_path = path.split('/')[-1]
@@ -61,7 +62,11 @@ def show_label_result(paths,preds,labels):
         print(f'{path}: {real}> {text}')
         if real == text or real.lower() == text.lower():
             acc += 1
+        else:
+            errors.append((path,real.lower(),text.lower()))
+
     print(f"acc: {acc}/{total} {acc*1.0/total}")
+    #print(errors)
 
 
 
