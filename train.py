@@ -141,6 +141,8 @@ def main(train_data_path,goto_train, model_name,reload_checkpoint = None):
                                         decode_method=crc_train_config['decode_method'],
                                         beam_size=crc_train_config['beam_size'])
     logger.info(" fast train over")
+    early_num = 0
+    val_acc = 0.0
     optimizer = optim.Adam(crnn.parameters(), lr=m_lr)
     for epoch in tqdm(range(epochs + 1, epochs + m_epochs + 1)):
         train(epoch, show_interval, crnn, optimizer, criterion, device, t_loader)
