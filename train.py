@@ -125,7 +125,7 @@ def main(train_data_path,goto_train, model_name,reload_checkpoint = None):
         crnn.load_state_dict(torch.load(reload_checkpoint, map_location=device))
         logger.info(f"Train from the least model {reload_checkpoint}")
         # 降低一下学习率
-        lr = 1e-4
+        lr = 1e-5
     assert crnn
     crnn.to(device)
     optimizer = optim.Adam(crnn.parameters(), lr=lr)
