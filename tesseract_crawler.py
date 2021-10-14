@@ -29,7 +29,6 @@ def doGet(path,name,idx, base_url, params,headers):
     req = requests.get(url = url,headers = headers)
     if(req.status_code == 200):
         text = req.content
-        print(text)
         with open(f'{path}/{name}_{idx}_{time.time()}.png','wb') as f:
             f.write(text)
 
@@ -42,10 +41,10 @@ if __name__ == '__main__':
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'zh-CN,zh;q=0.9'
     }
-    url = "https://v4.passport.sohu.com/i/captcha/picture?pagetoken=1632833482419&random=passport403_sdk1632833482419"
+    url = "https://fuwu.most.gov.cn/authentication/servlet/validateCodeServlet?width=100&height=32&1634122558325"
     name = split_name(url)
-    nums = 10
-    path = f"./data/{name}"
+    nums = 100
+    path = f"/Users/sjhuang/Documents/docs/dataset/unlabel_data/{name}"
     if not os.path.exists(path):
         logger.info(f"create {path} successful!\n")
         os.mkdir(path)

@@ -20,7 +20,7 @@ crc_train_config = {
    "momentum": 0.9,
    "epochs":  30,
    "m_epochs":1000,
-   "early_stop": 10,
+   "early_stop": 20,
    "map_to_seq_hidden": 512,
    "rnn_hidden": 256,
    "leaky_relu": False,
@@ -30,7 +30,7 @@ crc_train_config = {
    'valid_interval': 3,
    "drop_last":True,
    "num_workers":3,
-   "decode_method":"greedy",
+   "decode_method":"beam_search",
    "beam_size":10,
 }
 
@@ -40,7 +40,7 @@ crc_v2_train_config = {
    "momentum": 0.9,
    "epochs":  30,
    "m_epochs":1000,
-   "early_stop": 10,
+   "early_stop": 20,
    "map_to_seq_hidden": 256,
    "rnn_hidden": 128,
    "leaky_relu": False,
@@ -50,7 +50,7 @@ crc_v2_train_config = {
    'valid_interval': 3,
    "drop_last":True,
    "num_workers":3,
-   "decode_method":"greedy",
+   "decode_method":"beam_search",
    "beam_size":10,
 }
 
@@ -61,7 +61,7 @@ resnet_rnn_train_config = {
    "momentum": 0.9,
    "epochs":  30,
    "m_epochs":1000,
-   "early_stop": 10,
+   "early_stop": 20,
    "map_to_seq_hidden": 2048,
    "rnn_hidden": 128,
    "leaky_relu": False,
@@ -71,7 +71,7 @@ resnet_rnn_train_config = {
    'valid_interval': 3,
    "drop_last":True,
    "num_workers":3,
-   "decode_method":"greedy",
+   "decode_method":"beam_search",
    "beam_size":10,
 }
 

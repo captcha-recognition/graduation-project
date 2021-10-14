@@ -1,7 +1,10 @@
+import os
+
 import numpy as np
+import pandas as pd
 import torch
 import random
-
+from tqdm import tqdm
 import config
 from config import LABEL2CHAR,CHAR2LABEL,configs
 from models import crnn,crnn_v2,resnet_rnn
@@ -30,3 +33,17 @@ def make_model(model_name):
                  config.num_class,model_params['map_to_seq_hidden'],
                  model_params['rnn_hidden'],model_params['leaky_relu'])
     return crnn
+
+def dataset_check(path):
+    labels = pd.read_csv(os.path.join(path,'train_label.csv'))
+    keys = list(labels['ID'].values)
+    vals = list(labels['label'].values)
+    for key,val in tqdm(zip(keys,vals)):
+        try:
+            val = val.lower()
+            label = [CHAR2LABEL[ch] for ch in val]
+        except Exception as e:
+            print(val,key,e)
+
+if __name__ == '__main__':
+    dataset_check('~/Documents/docs/dataset/label_data/captcha_generator')

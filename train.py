@@ -141,7 +141,7 @@ def main(train_data_path,goto_train, model_name,reload_checkpoint = None):
                                         decode_method=crc_train_config['decode_method'],
                                         beam_size=crc_train_config['beam_size'])
     logger.info(" fast train over")
-    optimizer = optim.SGD(crnn.parameters(), lr=m_lr,momentum= momentum)
+    optimizer = optim.Adam(crnn.parameters(), lr=m_lr)
     for epoch in tqdm(range(epochs + 1, epochs + m_epochs + 1)):
         train(epoch, show_interval, crnn, optimizer, criterion, device, t_loader)
         if epoch % valid_interval == 0:

@@ -33,7 +33,7 @@ def fix_idx(path,begin = 1):
     keys = list(data['ID'].values)
     new_keys = []
     vals = list(data['label'].values)
-    for k, v in zip(keys,vals):
+    for k, v in tqdm(zip(keys,vals)):
         _, ty = k.split(".")
         if ty == 'png' or ty == 'jpg' or ty == 'jpeg':
             new_k = f"{idx}.{ty}"
@@ -54,11 +54,12 @@ def merge_dataset(p1,p2,p):
     data.to_csv(os.path.join(p, "train_label.csv"), index = False)
 
 if __name__ == '__main__':
-    merge_dataset("/Users/sjhuang/Documents/docs/dataset/captcha/train_data"
-                  ,"/Users/sjhuang/Documents/docs/dataset/captcha/train",
-                  "/Users/sjhuang/Documents/docs/dataset/captcha/train_data")
+    merge_dataset("/Users/sjhuang/Documents/docs/dataset/label_data"
+                  ,"/Users/sjhuang/Documents/docs/dataset/captcha/captcha_generator",
+                  "/Users/sjhuang/Documents/docs/dataset/label_data")
     # "/Users/sjhuang/Documents/docs/dataset/captcha/train",
     #                   "/Users/sjhuang/Documents/docs/dataset/captcha/train_data"
+    #fix_idx('/Users/sjhuang/Documents/docs/dataset/label_data',begin=200001)
 
 
 
