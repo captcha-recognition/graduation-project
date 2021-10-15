@@ -34,7 +34,7 @@ class ResNet(nn.Module):
         self.in_channel = 64
         channels = [64,128,256,512]
         strides = [1,2,2,2]
-        num_blocks = [2,2,2,2]
+        num_blocks = [3,4,6,3]
         self.input_shape = input_shape
         channel, height, width = input_shape
         self.conv1 = nn.Sequential(
@@ -44,6 +44,7 @@ class ResNet(nn.Module):
         )
         layers = [self.make_layer(ResidualBlock,channel,num_block,stride) for channel,stride,num_block in zip(channels,strides,num_blocks)]
         self.layers = nn.Sequential(*layers)
+        self.out_pool = nn.MaxPool2d(kernel_size=(2,2), stride=(2,1), padding=0)
 
     def make_layer(self, block, channels, num_blocks, stride):
         strides = [stride] + [1] * (num_blocks - 1)
@@ -54,13 +55,16 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        x = self.conv1(x)  # [3, 32, 100] -> [64, 32, 100]
-        x = self.layers(x) # [64, 32, 100] -> [512, 4, 13]
+        x = self.conv1(x)
+        x = self.layers(x)
+        x = self.out_pool(x)
         return x
 
 
 if __name__ == '__main__':
     resnet = ResNet((3,32,100))
     #(batch, channel, height, width)
-    x = torch.rand((64,3,32,100))
+    print(resnet)
+    x = torch.rand((16,3,32,100))
     out = resnet(x)
+    print(out.shape)

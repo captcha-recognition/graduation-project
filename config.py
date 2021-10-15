@@ -65,7 +65,7 @@ resnet_rnn_train_config = {
    "epochs":  30,
    "m_epochs":1000,
    "early_stop": 20,
-   "map_to_seq_hidden": 2048,
+   "map_to_seq_hidden": 1024,
    "rnn_hidden": 128,
    "leaky_relu": False,
    "checkpoints_dir":"checkpoints/crc_checkpoints/",
