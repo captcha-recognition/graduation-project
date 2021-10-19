@@ -70,11 +70,20 @@ class CaptchaDataset(dataset.Dataset):
 
     def __getitem__(self, idx):
         image_path = self.image_paths[idx]
-        img = Image.open(image_path)
-        img = img.convert("RGB")
+        fail = False
+        try:
+            img = Image.open(image_path)
+            img = img.convert("RGB")
+        except Exception as e:
+            logger.error(e)
+            img = Image.open('2-mc5m.png')
+            fail = True
         if self.train:
-            label = str(self.labels[idx])
-            label = label.lower()
+            if fail:
+                label = 'mc5m'
+            else:
+                label = str(self.labels[idx])
+                label = label.lower()
             target = [config.CHAR2LABEL[c] for c in label]
             target_length = [len(target)]
             target = torch.LongTensor(target)
