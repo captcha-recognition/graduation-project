@@ -91,7 +91,10 @@ def valid(epoch,crnn, criterion, device, dataloader,val_acc,early_num,checkpoint
         early_num = 0
         pid = os.getpid()
         day = time.strftime('%Y%m%d', time.localtime(time.time()))
-        save_model_path = os.path.join(checkpoints_dir,
+        model_path = os.path.join(checkpoints_dir,f'{day}')
+        if not os.path.exists(model_path):
+            os.makedirs(model_path)
+        save_model_path = os.path.join(model_path,
                                        f'{day}_{pid}_{crnn.name()}.pt')
         torch.save(crnn.state_dict(), save_model_path)
         logger.info(f'save model at {save_model_path}, epoch:{epoch}, loss:{valid_loss},acc:{val_acc} ')

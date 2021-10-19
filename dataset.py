@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from torch.utils.data import dataset,dataloader
 import config
-from logger import  logger
+from logger import  logger,init_log
 
 
 class CaptchaDataset(dataset.Dataset):
@@ -20,10 +20,10 @@ class CaptchaDataset(dataset.Dataset):
     # test: index.png
     """
 
-    def __init__(self, root, transformer = None,train = True):
+    def __init__(self, root,multi = False, transformer = None,train = True):
         """
         captcha dataset
-        :param root: the path of dataset, 数据类型为 root/label.png ...
+        :param root: the paths of dataset, 数据类型为 root/label.png ...
         :param transformer: transformer for image
         :param train: train of not
         """
@@ -37,10 +37,11 @@ class CaptchaDataset(dataset.Dataset):
             self.transformer = transforms.ToTensor()
         self.labels = None
         if self.train:
-            data = pd.read_csv(os.path.join(self.root,'train_label.csv'),skip_blank_lines=True)
-            self.labels = list(data['label'].values)
-            self.image_paths = list(data['ID'].values)
-            assert len(self.labels) == len(self.image_paths)
+            if multi:
+                paths = [os.path.join(self.root,path) for path in os.listdir(self.root)]
+            else:
+                paths = [self.root]
+            self._extract_images(paths)
         else:
             paths = os.listdir(self.root)
             self.image_paths = []
@@ -49,20 +50,31 @@ class CaptchaDataset(dataset.Dataset):
                     self.image_paths.append(path)
         assert self.image_paths
 
+    def _extract_images(self, paths):
+        image_paths = []
+        labels = []
+        logger.info(f'read data from {paths}')
+        for item_path in paths:
+            logger.info(f'read data from {item_path}')
+            info = pd.read_csv(os.path.join(item_path,'train_label.csv',),skip_blank_lines=True)
+            item_image_paths = [os.path.join(item_path,path) for path in list(info['ID'].values)]
+            item_labels = list(info['label'].values)
+            image_paths += item_image_paths
+            labels += item_labels
+        self.image_paths = image_paths
+        self.labels = labels
+        assert len(self.image_paths) == len(self.labels)
 
     def __len__(self):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
-        #print(self.image_paths[idx])
-        image_path = os.path.join(self.root,self.image_paths[idx])
+        image_path = self.image_paths[idx]
         img = Image.open(image_path)
-        # print(self.labels[idx])
         img = img.convert("RGB")
         if self.train:
-            label = self.labels[idx]
+            label = str(self.labels[idx])
             label = label.lower()
-            #print(label)
             target = [config.CHAR2LABEL[c] for c in label]
             target_length = [len(target)]
             target = torch.LongTensor(target)
@@ -80,7 +92,7 @@ def captcha_collate_fn(batch):
     target_lengths = torch.cat(target_lengths, 0)
     return images, targets, target_lengths
 
-def train_loader(train_path,train_rate = config.train_rate,batch_size = config.batch_size,
+def train_loader(train_path,multi = False,train_rate = config.train_rate,batch_size = config.batch_size,
                  height = config.height, width = config.width,collate_fn = captcha_collate_fn,
                  transformer = None):
     """
@@ -94,14 +106,14 @@ def train_loader(train_path,train_rate = config.train_rate,batch_size = config.b
     if transformer is None:
         transformer = transforms.Compose(
             [
-              transforms.RandomAffine((0.9,1.1)),
-              transforms.RandomRotation(8),
+              #transforms.RandomAffine((0.9,1.1)),
+              #transforms.RandomRotation(8),
               transforms.Resize((height, width)),
               transforms.ToTensor(),
               transforms.Normalize(mean=config.mean,std= config.std)
              ]
         )
-    train_set = CaptchaDataset(train_path, transformer=transformer)
+    train_set = CaptchaDataset(train_path,multi = multi, transformer=transformer)
     train_len = int(len(train_set)*train_rate)
     train_data, val_data = torch.utils.data.random_split(train_set,[train_len,len(train_set)-train_len])
     return dataloader.DataLoader(train_data, batch_size=batch_size, shuffle=True,collate_fn= collate_fn),\
@@ -131,18 +143,26 @@ def test_loader(test_path,batch_size = config.test_batch_size, height = config.h
 
 
 if __name__ == '__main__':
-     train_loader,val_loader = train_loader(config.train_data_path)
-     #print(train_set.image_paths[1089])
-     # imgs, targets, target_lens  = next(iter(train_loader))
-     # grid_img = torchvision.utils.make_grid(imgs,nrow = 4)
-     # print(grid_img.shape)
-     # print(targets)
-     # plt.imshow(grid_img.permute(1, 2, 0))
-     # plt.imsave(f"pres/preprocessed_{height}_{weight}.jpg",grid_img.permute(1, 2, 0).numpy())
-     num = 0
-     for imgs, targets, target_lens  in train_loader:
-         num += len(imgs)
-         logger.info(f"imgs:{imgs.shape}, {num}")
+     init_log('test')
+     height,width = 32,100
+     transformer = transforms.Compose(
+        [
+            #transforms.RandomAffine((0.9, 1.1)),
+            #transforms.RandomRotation(8),
+            transforms.Resize((height, width)),
+            transforms.ToTensor(),
+        ]
+     )
+     path = '/Users/sjhuang/Documents/docs/dataset/train'
+     train_loader,val_loader = train_loader(path,multi = True,transformer = transformer)
+     imgs, targets, target_lens  = next(iter(train_loader))
+     grid_img = torchvision.utils.make_grid(imgs,nrow = 4)
+     plt.imshow(grid_img.permute(1, 2, 0))
+     plt.imsave(f"pres/preprocessed_{height}_{width}.jpg",grid_img.permute(1, 2, 0).numpy())
+     # num = 0
+     # for imgs, targets, target_lens  in train_loader:
+     #     num += len(imgs)
+     #     logger.info(f"imgs:{imgs.shape}, {num}")
 
 
 

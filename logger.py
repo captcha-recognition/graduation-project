@@ -16,7 +16,9 @@ def init_log(model_name):
     """
     rq = time.strftime('%Y%m%d', time.localtime(time.time()))
     pid = os.getpid()
-    log_name = os.path.join('log/', str(pid)+"_"+model_name + "_" + rq + '.log')
+    if not os.path.exists(f'log/{rq}'):
+        os.mkdir(os.path.join(f'log/{rq}'))
+    log_name = os.path.join(f'log/{rq}', str(pid)+"_"+model_name + "_" + rq + '.log')
 
     # 将日志消息发送到磁盘文件，默认情况下文件大小会无限增长
     fh = logging.FileHandler(log_name, mode='w')

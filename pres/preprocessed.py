@@ -53,14 +53,12 @@ def merge_dataset(p1,p2,p):
     print(data.head())
     data.to_csv(os.path.join(p, "train_label.csv"), index = False)
 
+def fix_label(path):
+    data = pd.read_csv(path,skip_blank_lines=True)
+    pass
+
 if __name__ == '__main__':
-    # merge_dataset("/Users/sjhuang/Documents/docs/dataset/label_data"
-    #               ,"/Users/sjhuang/Documents/docs/dataset/captcha/captcha_generator",
-    #               "/Users/sjhuang/Documents/docs/dataset/label_data")
-    # "/Users/sjhuang/Documents/docs/dataset/captcha/train",
-    #                   "/Users/sjhuang/Documents/docs/dataset/captcha/train_data"
-    #fix_idx('/Users/sjhuang/Documents/docs/dataset/label_data',begin=200001)
-    handle_dataset(path = '/Users/sjhuang/Documents/docs/dataset/test_data')
+   pass
 
 
 
