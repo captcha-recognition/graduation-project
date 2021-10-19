@@ -103,7 +103,7 @@ def valid(epoch,crnn, criterion, device, dataloader,val_acc,early_num,checkpoint
     return val_acc,early_num
 
 
-def main(train_data_path,goto_train, model_name,reload_checkpoint = None):
+def main(train_data_path, multi,goto_train, model_name,reload_checkpoint = None):
     crc_train_config = configs[model_name]
     epochs = crc_train_config['epochs']
     m_epochs = crc_train_config['m_epochs']
@@ -118,7 +118,7 @@ def main(train_data_path,goto_train, model_name,reload_checkpoint = None):
     if reload_checkpoint is None:
         reload_checkpoint = crc_train_config['reload_checkpoint']
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    t_loader,valid_loader = train_loader(train_data_path)
+    t_loader,valid_loader = train_loader(train_data_path,multi = multi)
     crnn = make_model(model_name)
     logger.info(f'当前运行环境为device: {device}, config:{crc_train_config}')
     # CRNN((config.channel, config.height, config.width), config.num_class,
@@ -170,6 +170,7 @@ if __name__ == '__main__':
     parser.add_argument('--goto_train',type=bool,required= False,default= False,help="Train from checkpoint or not")
     parser.add_argument('--model',type=str,required=False,default='crnn', help='The model of to be train')
     parser.add_argument('--reload_checkpoint',type=str,required=False, help='The pretrain params')
+    parser.add_argument('--multi', type=bool, required=False,default=True, help='The multi path for train dataset')
     args = parser.parse_args()
     init_log(args.model)
-    main(args.train_path,args.goto_train,args.model,args.reload_checkpoint)
+    main(args.train_path,args.multi,args.goto_train,args.model,args.reload_checkpoint)
