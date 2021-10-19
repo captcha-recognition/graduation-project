@@ -77,6 +77,7 @@ class CaptchaDataset(dataset.Dataset):
         except Exception as e:
             logger.error(e)
             img = Image.open('2-mc5m.png')
+            img = img.convert("RGB")
             fail = True
         if self.train:
             if fail:
