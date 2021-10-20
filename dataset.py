@@ -85,6 +85,8 @@ class CaptchaDataset(dataset.Dataset):
             else:
                 label = str(self.labels[idx])
                 label = label.lower()
+            if len(label) != 4:
+                logger.info(f'{label} length error')
             target = [config.CHAR2LABEL[c] for c in label]
             target_length = [len(target)]
             target = torch.LongTensor(target)
