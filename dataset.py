@@ -47,7 +47,7 @@ class CaptchaDataset(dataset.Dataset):
             self.image_paths = []
             for path in paths:
                 if path.endswith(".png") or path.endswith(".jpg") or path.endswith("jpeg"):
-                    self.image_paths.append(path)
+                    self.image_paths.append(os.path.join(self.root,path))
         assert self.image_paths
 
     def _extract_images(self, paths):
@@ -56,7 +56,7 @@ class CaptchaDataset(dataset.Dataset):
         logger.info(f'read data from {paths}')
         for item_path in paths:
             logger.info(f'read data from {item_path}')
-            info = pd.read_csv(os.path.join(item_path,'train_label.csv',),skip_blank_lines=True)
+            info = pd.read_json(os.path.join(item_path,'train_label.json',),dtype=str)
             item_image_paths = [os.path.join(item_path,path) for path in list(info['ID'].values)]
             item_labels = list(info['label'].values)
             image_paths += item_image_paths

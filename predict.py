@@ -58,7 +58,7 @@ def show_label_result(paths,preds,labels):
     for path, pred in zip(paths, preds):
         text = ''.join(pred)
         img_path = path.split('/')[-1]
-        real = labels[img_path]
+        real = str(labels[img_path])
         print(f'{path}: {real}> {text}')
         if real == text or real.lower() == text.lower():
             acc += 1
