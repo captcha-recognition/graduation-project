@@ -87,6 +87,7 @@ class CaptchaDataset(dataset.Dataset):
                 label = label.lower()
             if len(label) != 4:
                 logger.info(f'{label} length error')
+            #logger.info(label)
             target = [config.CHAR2LABEL[c] for c in label]
             target_length = [len(target)]
             target = torch.LongTensor(target)
@@ -161,7 +162,7 @@ if __name__ == '__main__':
         [
             #transforms.RandomAffine((0.9, 1.1)),
             #transforms.RandomRotation(8),
-            transforms.Resize((height, width)),
+            transforms.Resize((32, int(width/(height/3)))),
             transforms.ToTensor(),
         ]
      )

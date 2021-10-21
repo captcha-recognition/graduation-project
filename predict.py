@@ -45,9 +45,21 @@ def predict(crnn,test_loader,label2char,device,decode_method,beam_size):
 
 def show_result(paths, preds):
     print('\n===== result =====')
+    count = len(paths)
+    right = 0
+    errors = []
     for path, pred in zip(paths, preds):
         text = ''.join(pred)
+        real = path.split('/')[-1].split('.')[0]
         print(f'{path} > {text}')
+        if real.lower() == text:
+            right += 1
+        else:
+            errors.append([real,text])
+    print(f'{right}/{count} {right/count}')
+
+
+    
 
 def show_label_result(paths,preds,labels):
 
