@@ -129,7 +129,7 @@ def train_loader(train_path,multi = False,train_rate = config.train_rate,batch_s
               #transforms.RandomRotation(8),
               transforms.Resize((height, width)),
               transforms.ToTensor(),
-              transforms.Normalize(mean=config.mean,std= config.std)
+            #   transforms.Normalize(mean=config.mean,std= config.std)
              ]
         )
     train_set = CaptchaDataset(train_path,multi = multi, transformer=transformer)
@@ -153,7 +153,7 @@ def test_loader(test_path,batch_size = config.test_batch_size, height = config.h
         transformer = transforms.Compose(
         [transforms.Resize((height, width)),
          transforms.ToTensor(),
-         transforms.Normalize(mean=config.mean, std=config.std)
+        #  transforms.Normalize(mean=config.mean, std=config.std)
          ]
     )
     test_set = CaptchaDataset(test_path,train = False, transformer=transformer)
@@ -168,7 +168,7 @@ if __name__ == '__main__':
         [
             #transforms.RandomAffine((0.9, 1.1)),
             #transforms.RandomRotation(8),
-            transforms.Resize((32, int(width/(height/3)))),
+            transforms.Resize((32, 100)),
             transforms.ToTensor(),
         ]
      )
