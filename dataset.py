@@ -73,12 +73,18 @@ class CaptchaDataset(dataset.Dataset):
         fail = False
         try:
             img = Image.open(image_path)
-            img = img.convert("RGB")
         except Exception as e:
             logger.error(e)
             img = Image.open('2-mc5m.png')
-            img = img.convert("RGB")
             fail = True
+        if img.mode == 'RGBA':
+            r,g,b,a = img.split()
+            img.load() # required for png.split()
+            background = Image.new("RGB", img.size, (255, 255, 255))
+            background.paste(img, mask=a) # 3 is the alpha channel
+            img  =  background.convert("L")
+        else:
+            img = img.convert('L')
         if self.train:
             if fail:
                 label = 'mc5m'

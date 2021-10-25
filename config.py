@@ -7,7 +7,7 @@ train_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/train_data"
 test_data_path = "/Users/sjhuang/Documents/docs/dataset/captcha/test_data"
 train_rate = 0.9
 # resize 大小
-channel = 3
+channel = 1
 height = 32
 width = 100
 batch_size = 128
