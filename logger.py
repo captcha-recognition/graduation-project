@@ -21,7 +21,7 @@ def init_log(model_name):
     log_name = os.path.join(f'log/{rq}', str(pid)+"_"+model_name + "_" + rq + '.log')
 
     # 将日志消息发送到磁盘文件，默认情况下文件大小会无限增长
-    fh = logging.FileHandler(log_name, mode='w')
+    fh = logging.FileHandler(log_name, mode='w',encoding='utf-8')
     # setLevel(level)：给处理器设置阈值为 level。
     # 日志级别小于 level 将被忽略。创建处理器时，日志级别被设置为 NOTSET （所有的消息都会被处理）
     # debug<info<warning<error<critical

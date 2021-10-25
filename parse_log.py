@@ -1,18 +1,22 @@
+#-*- coding: utf-8 -*-
 import os
 from tqdm import  tqdm
 import matplotlib.pyplot as plt
 import  numpy as np
+
 def parse_log(path):
     train_loss,train_epoch= [],[]
     valid_loss,valid_epoch,valid_acc = [],[],[]
-    with open(path) as f:
+    with open(path,'r',encoding='gbk') as f:
         lines = f.readlines()
         for line in tqdm(lines):
+            print(line)
             item = str(line)
-            train = item.find("Train epoch")
-            valid = item.find("Valid epoch")
-            item = item.split('-INFO:')[1]
+            train = item.find("-INFO:Train epoch")
+            valid = item.find("-INFO:Valid epoch")
             if train != -1:
+                print(item)
+                item = item.split('-INFO:')[1]
                 epoch_info, loss_info = item.split(",")
                 #print(epoch_info,loss_info)
                 epoch = int(epoch_info.split(':')[1])
@@ -20,6 +24,8 @@ def parse_log(path):
                 train_loss.append(loss)
                 train_epoch.append(epoch)
             elif valid != -1:
+                print(item)
+                item = item.split('-INFO:')[1]
                 epoch_info, loss_info,acc_info = item.split(",")
                 epoch = int(epoch_info.split(':')[1])
                 loss = float(loss_info.split(':')[1])
@@ -54,5 +60,5 @@ def plt_show(path):
 
 
 if __name__ == '__main__':
-    path ="log/16961_20211012.log"
+    path ="checkpoints/crc_checkpoints/20211020/20211020_3371_resnet_rnn.pt"
     plt_show(path)
