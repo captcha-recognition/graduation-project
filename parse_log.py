@@ -7,7 +7,7 @@ import  numpy as np
 def parse_log(path):
     train_loss,train_epoch= [],[]
     valid_loss,valid_epoch,valid_acc = [],[],[]
-    with open(path,'r',encoding='gbk') as f:
+    with open(path,'r',encoding='utf-8') as f:
         lines = f.readlines()
         for line in tqdm(lines):
             print(line)
@@ -60,5 +60,5 @@ def plt_show(path):
 
 
 if __name__ == '__main__':
-    path ="checkpoints/crc_checkpoints/20211020/20211020_3371_resnet_rnn.pt"
+    path ="log/20211025/17860_resnet_rnn_20211025.log"
     plt_show(path)

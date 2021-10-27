@@ -83,8 +83,10 @@ class CaptchaDataset(dataset.Dataset):
             background = Image.new("RGB", img.size, (255, 255, 255))
             background.paste(img, mask=a) # 3 is the alpha channel
             img  =  background.convert("L")
-        else:
+        elif img.mode == 'RGB':
             img = img.convert('L')
+        elif img.mode != 'L' and img.mode != '1':
+            logger.error(f'error image mode {img.mode}, file path {image_path}')
         if self.train:
             if fail:
                 label = 'mc5m'
@@ -154,8 +156,7 @@ def test_loader(test_path,batch_size = config.test_batch_size, height = config.h
         [transforms.Resize((height, width)),
          transforms.ToTensor(),
         #  transforms.Normalize(mean=config.mean, std=config.std)
-         ]
-    )
+         ])
     test_set = CaptchaDataset(test_path,train = False, transformer=transformer)
     return dataloader.DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
