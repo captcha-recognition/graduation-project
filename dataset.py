@@ -73,7 +73,12 @@ class CaptchaDataset(dataset.Dataset):
         fail = False
         try:
             img = Image.open(image_path)
-            img = img.convert("RGB")
+            if img.mode == 'RGBA':
+                r,g,b,a = img.split()
+                img.load() # required for png.split()
+                background = Image.new("RGB", img.size, (255, 255, 255))
+                background.paste(img, mask=a) # 3 is the alpha channel
+                img  =  background
         except Exception as e:
             logger.error(e)
             img = Image.open('2-mc5m.png')
