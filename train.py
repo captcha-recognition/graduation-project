@@ -14,6 +14,7 @@ from config import  configs
 from ctc import  ctc_decode
 from  tqdm import  tqdm
 from logger import  init_log
+import wandb
 
 def train(epoch,show_interval,crnn, optimizer, criterion, device, train_loader):
     """
@@ -173,5 +174,6 @@ if __name__ == '__main__':
     parser.add_argument('--multi', type=bool, required=False,default=False, help='The multi path for train dataset')
     args = parser.parse_args()
     init_log(args.model)
+    wandb.init(project= args.model)
     #logger.info(args.train_path, args.model, args.multi)
     main(args.train_path,args.multi,args.goto_train,args.model,args.reload_checkpoint)
