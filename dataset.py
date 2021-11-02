@@ -117,7 +117,10 @@ def resizeNormalize(image,imgH, imgW):
     resize and normalize image
     """
     transformer = transforms.Compose(
-        [transforms.Resize((imgH, imgW)),
+        [
+         transforms.RandomAffine((0.9,1.1)),
+         transforms.RandomRotation(6),
+         transforms.Resize((imgH, imgW)),
          transforms.ToTensor(),
          transforms.Normalize(mean=config.mean, std=config.std)
          ]
