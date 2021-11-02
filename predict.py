@@ -67,18 +67,27 @@ def show_label_result(paths,preds,labels):
     total = len(paths)
     acc = 0
     errors = []
+    reals = []
+    res = []
     for path, pred in zip(paths, preds):
-        text = ''.join(pred)
-        img_path = path.split('/')[-1]
-        real = str(labels[img_path])
-        print(f'{path}: {real}> {text}')
-        if real == text or real.lower() == text.lower():
-            acc += 1
-        else:
-            errors.append((path,real.lower(),text.lower()))
-
-    print(f"acc: {acc}/{total} {acc*1.0/total}")
+        try:
+            text = ''.join(pred)
+            img_path = path.split('/')[-1]
+            real = str(labels[img_path])
+            print(f'{path}: {real}> {text}')
+            reals.append(real)
+            res.append(preds)
+            if real == text or real.lower() == text.lower():
+                acc += 1
+            else:
+                errors.append((path,real.lower(),text.lower()))
+            print(f"acc: {acc}/{total} {acc*1.0/total}")
+        except Exception as e:
+            print(e)
     #print(errors)
+    ans = pd.DataFrame({'real':reals,'pred':res})
+    ans.to_json('ans.json')
+    
 
 
 
@@ -94,7 +103,7 @@ def main(test_path,checkpoint_path,model_name,has_label = False,decode_method = 
     preds,images = predict(crnn, predict_loader,config.LABEL2CHAR, device,
                            decode_method = decode_method,beam_size=beam_size)
     if has_label:
-        data = pd.read_csv(os.path.join(test_path,'train_label.csv'))
+        data = pd.read_json(os.path.join(test_path,'train_label.json'))
         keys = list(data['ID'].values)
         values = list(data['label'].values)
         labels = {k:v for k,v in zip(keys,values)}

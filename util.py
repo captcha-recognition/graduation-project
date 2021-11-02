@@ -46,5 +46,7 @@ def dataset_check(path):
         except Exception as e:
             print(val,key,e)
 
+
+
 if __name__ == '__main__':
     dataset_check('~/Documents/docs/dataset/label_data/captcha_generator')
