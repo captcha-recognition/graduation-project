@@ -27,58 +27,34 @@ def load_model(checkpoint_path, device,model_name):
 def predict(crnn,test_loader,label2char,device,decode_method,beam_size):
     crnn.eval()
     pbar = tqdm(total=len(test_loader), desc="Predict")
-    all_preds = []
-    test_data = []
+    tot_correct = 0
+    tot_count = 0
+    wrong_cases = []
     with torch.no_grad():
-        for image_paths ,data in test_loader:
-            test_data += image_paths
-            images = data.to(device)
+        for images, targets, target_lengths  in test_loader:
+            images = images.to(device)
             logits = crnn(images)
             log_probs = torch.nn.functional.log_softmax(logits, dim=2)
-            preds = ctc_decode(log_probs, method=decode_method, beam_size=beam_size,
-                               label2char=label2char)
-            all_preds += preds
+            preds = ctc_decode(log_probs, method=decode_method, beam_size=beam_size)
+            target_lengths = target_lengths.cpu().numpy().tolist()
+            reals = targets.cpu().numpy().tolist()
+            target_length_counter = 0
+            tot_count += len(target_lengths)
+            for pred, target_length in zip(preds, target_lengths):
+                real = reals[target_length_counter:target_length_counter + target_length]
+                target_length_counter += target_length
+                if real == pred:
+                    tot_correct += 1
+                else:
+                    wrong_cases.append([util.decode_target(real),util.decode_target(pred)])
             pbar.update(1)
         pbar.close()
-
-    return all_preds,test_data
-
-def show_result(paths, preds):
-    print('\n===== result =====')
-    count = len(paths)
-    right = 0
-    errors = []
-    for path, pred in zip(paths, preds):
-        text = ''.join(pred)
-        real = path.split('/')[-1].split('.')[0]
-        print(f'{path} > {text}')
-        if real.lower() == text:
-            right += 1
-        else:
-            errors.append([real,text])
-    print(f'{right}/{count} {right/count}')
-
-
     
+    print(f"acc: {tot_correct}/{tot_count} {tot_correct*1.0/tot_count}")
+    print(wrong_cases)
+    return wrong_cases
 
-def show_label_result(paths,preds,labels):
 
-    print('\n===== result =====')
-    total = len(paths)
-    acc = 0
-    errors = []
-    for path, pred in zip(paths, preds):
-        text = ''.join(pred)
-        img_path = path.split('/')[-1]
-        real = str(labels[img_path])
-        print(f'{path}: {real}> {text}')
-        if real == text or real.lower() == text.lower():
-            acc += 1
-        else:
-            errors.append((path,real.lower(),text.lower()))
-
-    print(f"acc: {acc}/{total} {acc*1.0/total}")
-    #print(errors)
 
 
 
@@ -91,16 +67,10 @@ def main(test_path,checkpoint_path,model_name,has_label = False,decode_method = 
     crnn.load_state_dict(torch.load(checkpoint_path, map_location=device))
     crnn.to(device)
 
-    preds,images = predict(crnn, predict_loader,config.LABEL2CHAR, device,
+    wrong_cases = predict(crnn, predict_loader,config.LABEL2CHAR, device,
                            decode_method = decode_method,beam_size=beam_size)
-    if has_label:
-        data = pd.read_csv(os.path.join(test_path,'train_label.csv'))
-        keys = list(data['ID'].values)
-        values = list(data['label'].values)
-        labels = {k:v for k,v in zip(keys,values)}
-        show_label_result(images, preds,labels)
-    else:
-        show_result(images, preds)
+
+
 
 
 

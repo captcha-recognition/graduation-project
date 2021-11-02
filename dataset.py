@@ -94,24 +94,23 @@ class CaptchaDataset(dataset.Dataset):
             img = Image.open('2-mc5m.png')
             img = img.convert("RGB")
             fail = True
-        if self.train:
-            if fail:
-                label = 'mc5m'
-            else:
-                label = str(self.labels[idx])
-                label = label.lower()
-            if len(label) != 4:
-                logger.info(f'{label} length error')
-            #logger.info(label)
-            target = [config.CHAR2LABEL[c] for c in label]
-            target_length = [len(target)]
-            target = torch.LongTensor(target)
-            target_length = torch.LongTensor(target_length)
-            if self.transformer:
-                img = self.transformer(img)
-            return img, target, target_length
+           
+        if fail:
+            label = 'mc5m'
         else:
-            return image_path, self.transformer(img)
+            label = str(self.labels[idx])
+            label = label.lower()
+        if len(label) != 4:
+            logger.info(f'{label} length error')
+            #logger.info(label)
+        target = [config.CHAR2LABEL[c] for c in label]
+        target_length = [len(target)]
+        target = torch.LongTensor(target)
+        target_length = torch.LongTensor(target_length)
+        if self.transformer:
+            img = self.transformer(img)
+        return img, target, target_length
+ 
 
 def resizeNormalize(image,imgH, imgW):
     """
@@ -120,7 +119,7 @@ def resizeNormalize(image,imgH, imgW):
     transformer = transforms.Compose(
         [transforms.Resize((imgH, imgW)),
          transforms.ToTensor(),
-        #  transforms.Normalize(mean=config.mean, std=config.std)
+         transforms.Normalize(mean=config.mean, std=config.std)
          ]
     )
     return transformer(image)
