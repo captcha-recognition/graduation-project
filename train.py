@@ -171,7 +171,7 @@ def main(train_data_path, multi,goto_train, model_name,reload_checkpoint = None)
                                         decode_method=crc_train_config['decode_method'],
                                         beam_size=crc_train_config['beam_size'])
 
-        if early_num > early_stop:
+        if early_num > early_stop and val_acc >= 0.8: 
             logger.info(f"Early Stop in epoch:{epoch}")
             break
     logger.info(" All train over")

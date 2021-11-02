@@ -33,6 +33,7 @@ class CaptchaDataset(dataset.Dataset):
         self.train = train
         self.transformer = transformer
         self.labels = None
+        self.back = None
         if multi:
             paths = [os.path.join(self.root,path) for path in os.listdir(self.root)]
         else:
@@ -67,10 +68,18 @@ class CaptchaDataset(dataset.Dataset):
             for file_path in file_paths:
                 if file_path.endswith(".png") or file_path.endswith(".jpg") or file_path.endswith("jpeg"):
                     self.image_paths.append(os.path.join(path,file_path))
-                    if self.train:
-                        self.labels.append(file_path.split('_')[1].split('.')[0])
+                    name = file_path.split('.')[0]
+                    if name.find('-') != -1:
+                        label = name.split('-')[1]
+                    elif name.find('_') != -1:
+                        label = name.split('_')[1]
                     else:
-                        self.labels.append(file_path.split('.')[0])
+                        label = name
+                    self.labels.append(label)
+                    # if self.train:
+                    #     self.labels.append(file_path.split('_')[1].split('.')[0])
+                    # else:
+                    #     self.labels.append(file_path.split('.')[0])
 
         assert len(self.image_paths) == len(self.labels) 
         
@@ -213,7 +222,6 @@ def test_loader(test_path,batch_size = config.test_batch_size, height = config.h
 
 
 if __name__ == '__main__':
-     init_log('test')
      height,width = 32,100
     #  transformer = transforms.Compose(
     #     [
