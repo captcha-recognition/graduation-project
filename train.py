@@ -16,7 +16,7 @@ from  tqdm import  tqdm
 from logger import  init_log
 import wandb
 
-def train(epoch,show_interval,crnn, optimizer, criterion, device, train_loader):
+def train(epoch,show_interval,crnn, optimizer, criterion, device, train_loader,experiment):
     """
     :param epoch:
     :param show_interval:
@@ -47,10 +47,14 @@ def train(epoch,show_interval,crnn, optimizer, criterion, device, train_loader):
         tot_train_count += 1
         pbar.update(1)
     pbar.close()
+    experiment.log({
+        'train loss': tot_train_loss / tot_train_count,
+        'epoch': epoch
+    })
     logger.info(f'Train epoch :{epoch}, train_loss: {tot_train_loss / tot_train_count}')
 
 
-def valid(epoch,crnn, criterion, device, dataloader,val_acc,early_num,checkpoints_dir,
+def valid(epoch,crnn, criterion, device, dataloader,val_acc,early_num,checkpoints_dir,experiment,
           decode_method='beam_search', beam_size=10):
     crnn.eval()
     tot_count = 0
@@ -87,6 +91,16 @@ def valid(epoch,crnn, criterion, device, dataloader,val_acc,early_num,checkpoint
     valid_loss = tot_loss / batch_count
     valid_acc = tot_correct / tot_count
     logger.info(f'Valid epoch:{epoch}, loss:{valid_loss}, acc:{valid_acc} ')
+    experiment.log({
+        'val loss': valid_loss,
+        'val acc':valid_acc,
+        'epoch': epoch,
+        'images': wandb.Image(images[0].cpu()),
+        'result': {
+            'true': reals,
+            'pred': preds,
+        },
+    })
     if val_acc < valid_acc:
         val_acc = valid_acc
         early_num = 0
@@ -139,21 +153,25 @@ def main(train_data_path, multi,goto_train, model_name,reload_checkpoint = None)
     criterion.to(device)
     early_num = 0
     val_acc = 0.0
+    experiment = wandb.init(project= model_name)
+    experiment.config.update(dict(epochs=epochs, batch_size=config.batch_size, learning_rate=lr))
     for epoch in tqdm(range(1, epochs)):
-        train(epoch,show_interval,crnn,optimizer,criterion,device,t_loader)
+        train(epoch,show_interval,crnn,optimizer,criterion,device,t_loader,experiment)
         if epoch%valid_interval == 0:
             val_acc, early_num = valid(epoch, crnn, criterion, device, valid_loader, val_acc, early_num,
                                         checkpoints_dir,
+                                        experiment,
                                         decode_method=crc_train_config['decode_method'],
                                         beam_size=crc_train_config['beam_size'])
     logger.info(" fast train over")
     early_num = 0
     optimizer = optim.Adam(crnn.parameters(), lr=m_lr)
     for epoch in tqdm(range(epochs + 1, epochs + m_epochs + 1)):
-        train(epoch, show_interval, crnn, optimizer, criterion, device, t_loader)
+        train(epoch, show_interval, crnn, optimizer, criterion, device, t_loader,experiment)
         if epoch % valid_interval == 0:
             val_acc, early_num = valid(epoch, crnn, criterion, device, valid_loader, val_acc, early_num,
                                         checkpoints_dir,
+                                        experiment,
                                         decode_method=crc_train_config['decode_method'],
                                         beam_size=crc_train_config['beam_size'])
 
@@ -174,6 +192,5 @@ if __name__ == '__main__':
     parser.add_argument('--multi', type=bool, required=False,default=False, help='The multi path for train dataset')
     args = parser.parse_args()
     init_log(args.model)
-    wandb.init(project= args.model)
     #logger.info(args.train_path, args.model, args.multi)
     main(args.train_path,args.multi,args.goto_train,args.model,args.reload_checkpoint)

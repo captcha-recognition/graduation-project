@@ -9,3 +9,4 @@ checkpoints/crc_checkpoints/*
 pres/data
 data
 nohup.out
+wandb
