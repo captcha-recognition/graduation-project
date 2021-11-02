@@ -33,21 +33,14 @@ class CaptchaDataset(dataset.Dataset):
         self.train = train
         self.transformer = transformer
         self.labels = None
-        if self.train:
-            if multi:
-                paths = [os.path.join(self.root,path) for path in os.listdir(self.root)]
-            else:
-                paths = [self.root]
-            self._extract_images(paths)
+        if multi:
+            paths = [os.path.join(self.root,path) for path in os.listdir(self.root)]
         else:
-            paths = os.listdir(self.root)
-            self.image_paths = []
-            for path in paths:
-                if path.endswith(".png") or path.endswith(".jpg") or path.endswith("jpeg"):
-                    self.image_paths.append(os.path.join(self.root,path))
-        assert self.image_paths
+            paths = [self.root]
+        self._extract_images(paths)
 
-    def _extract_images(self, paths):
+    def __extract_images(self, paths):
+
         image_paths = []
         labels = []
         logger.info(f'read data from {paths}')
@@ -60,7 +53,27 @@ class CaptchaDataset(dataset.Dataset):
             labels += item_labels
         self.image_paths = image_paths
         self.labels = labels
+
         assert len(self.image_paths) == len(self.labels)
+    
+    def _extract_images(self,paths):
+        self.image_paths = []
+        self.labels = []
+        for path in paths:
+            logger.info(path)
+            if not os.path.isdir(path):
+                continue
+            file_paths = os.listdir(path)
+            for file_path in file_paths:
+                if file_path.endswith(".png") or file_path.endswith(".jpg") or file_path.endswith("jpeg"):
+                    self.image_paths.append(os.path.join(path,file_path))
+                    if self.train:
+                        self.labels.append(file_path.split('_')[1].split('.')[0])
+                    else:
+                        self.labels.append(file_path.split('.')[0])
+
+        assert len(self.image_paths) == len(self.labels) 
+        
 
     def __len__(self):
         return len(self.image_paths)
@@ -107,7 +120,7 @@ def resizeNormalize(image,imgH, imgW):
     transformer = transforms.Compose(
         [transforms.Resize((imgH, imgW)),
          transforms.ToTensor(),
-         transforms.Normalize(mean=config.mean, std=config.std)
+        #  transforms.Normalize(mean=config.mean, std=config.std)
          ]
     )
     return transformer(image)
@@ -155,7 +168,7 @@ def train_loader(train_path,multi = False,train_rate = config.train_rate,batch_s
 
 
 def test_loader(test_path,batch_size = config.test_batch_size, height = config.height,
-                width = config.width,transformer = None):
+                width = config.width,collate_fn = captcha_collate_fn,transformer = None):
     """
 
     :param test_path:
@@ -172,7 +185,7 @@ def test_loader(test_path,batch_size = config.test_batch_size, height = config.h
     #      ]
     # )
     test_set = CaptchaDataset(test_path,train = False, transformer=transformer)
-    return dataloader.DataLoader(test_set, batch_size=batch_size, shuffle=False)
+    return dataloader.DataLoader(test_set, batch_size=batch_size, shuffle=False,collate_fn = collate_fn)
 
 
 

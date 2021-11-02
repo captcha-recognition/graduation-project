@@ -1,7 +1,7 @@
 # training model
 import os
 import time
-from util import  setup_seed, make_model
+from util import  setup_seed, make_model,decode_target
 from  logger import  logger
 import torch
 import  torch.nn.functional as F
@@ -95,7 +95,7 @@ def valid(epoch,crnn, criterion, device, dataloader,val_acc,early_num,checkpoint
         'val loss': valid_loss,
         'val acc':valid_acc,
         'epoch': epoch,
-        'images': wandb.Image(images[-1].cpu(),caption=f'Real:{real}, Pred:{pred}'),
+        'images': wandb.Image(images[-1].cpu(),caption=f'Real:{decode_target(real)}, Pred:{decode_target(pred)}'),
     })
     if val_acc < valid_acc:
         val_acc = valid_acc

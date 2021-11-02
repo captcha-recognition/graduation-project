@@ -105,6 +105,13 @@ configs = {
    'resnet_gru':resnet_gru_train_config,
 }
 
+
+
+char_infos = {
+   
+}
+
+
 ## labels and chars only 英文和数字
 CHARS = '-'+ string.digits + string.ascii_lowercase
 #CHARS = "-"+ string.digits + string.ascii_lowercase + string.ascii_uppercase

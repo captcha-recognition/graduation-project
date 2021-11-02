@@ -8,6 +8,7 @@ from tqdm import tqdm
 import config
 from config import LABEL2CHAR,CHAR2LABEL,configs
 from models import crnn,crnn_v2,resnet_rnn,resnet_gru
+
 def setup_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
