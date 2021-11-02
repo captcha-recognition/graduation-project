@@ -112,11 +112,12 @@ class CaptchaDataset(dataset.Dataset):
         return img, target, target_length
  
 
-def resizeNormalize(image,imgH, imgW):
+def resizeNormalize(image,imgH, imgW, train = False):
     """
     resize and normalize image
     """
-    transformer = transforms.Compose(
+    if train:
+        transformer = transforms.Compose(
         [
          transforms.RandomAffine((0.9,1.1)),
          transforms.RandomRotation(6),
@@ -125,24 +126,44 @@ def resizeNormalize(image,imgH, imgW):
          transforms.Normalize(mean=config.mean, std=config.std)
          ]
     )
+    else:
+        transformer = transforms.Compose(
+        [
+         transforms.Resize((imgH, imgW)),
+         transforms.ToTensor(),
+         transforms.Normalize(mean=config.mean, std=config.std)
+         ]
+    )
     return transformer(image)
 
-def captcha_collate_fn(batch,imgH = 32, imgW = 100, keep_ratio = True):
-    images, targets, target_lengths = zip(*batch)
-    if keep_ratio:
-        max_ratio = 0.0
-        for image in images:
-            w,h = image.size
-            max_ratio = max(max_ratio,w/float(h))
-        imgW = max(int(max_ratio*imgH),imgW)
-    images = [resizeNormalize(image,imgH,imgW) for image in images]
-    images = torch.stack(images, 0)
-    targets = torch.cat(targets, 0)
-    target_lengths = torch.cat(target_lengths, 0)
-    return images, targets, target_lengths
+
+class CaptchaCollateFn(object):
+
+    def __init__(self,imgH=32, imgW=100, keep_ratio=False,train = False) -> None:
+        super().__init__()
+        self.imgH = imgH
+        self.imgW = imgW
+        self.keep_ratio = keep_ratio
+        self.train = train
+    
+    def __call__(self, batch):
+        images, targets, target_lengths = zip(*batch)
+        if self.keep_ratio:
+            max_ratio = 0.0
+            for image in images:
+                w,h = image.size
+                max_ratio = max(max_ratio,w/float(h))
+            imgW = max(int(max_ratio*self.imgH),self.imgW)
+        images = [resizeNormalize(image,self.imgH,self.imgW,self.train) for image in images]
+        images = torch.stack(images, 0)
+        targets = torch.cat(targets, 0)
+        target_lengths = torch.cat(target_lengths, 0)
+        return images, targets, target_lengths
+        
+    
 
 def train_loader(train_path,multi = False,train_rate = config.train_rate,batch_size = config.batch_size,
-                 height = config.height, width = config.width,collate_fn = captcha_collate_fn,
+                 height = config.height, width = config.width,keep_ratio = True,
                  transformer = None):
     """
     
@@ -165,12 +186,12 @@ def train_loader(train_path,multi = False,train_rate = config.train_rate,batch_s
     train_set = CaptchaDataset(train_path,multi = multi, transformer=transformer)
     train_len = int(len(train_set)*train_rate)
     train_data, val_data = torch.utils.data.random_split(train_set,[train_len,len(train_set)-train_len])
-    return dataloader.DataLoader(train_data, batch_size=batch_size, shuffle=True,collate_fn= collate_fn),\
-           dataloader.DataLoader(val_data, batch_size=batch_size, shuffle=True,collate_fn= collate_fn)
+    return dataloader.DataLoader(train_data, batch_size=batch_size, shuffle=True,collate_fn= CaptchaCollateFn(height,width,keep_ratio,True)),\
+           dataloader.DataLoader(val_data, batch_size=batch_size, shuffle=True,collate_fn= CaptchaCollateFn(height,width,keep_ratio,False))
 
 
 def test_loader(test_path,batch_size = config.test_batch_size, height = config.height,
-                width = config.width,collate_fn = captcha_collate_fn,transformer = None):
+                width = config.width,keep_ratio = True,transformer = None):
     """
 
     :param test_path:
@@ -187,7 +208,7 @@ def test_loader(test_path,batch_size = config.test_batch_size, height = config.h
     #      ]
     # )
     test_set = CaptchaDataset(test_path,train = False, transformer=transformer)
-    return dataloader.DataLoader(test_set, batch_size=batch_size, shuffle=False,collate_fn = collate_fn)
+    return dataloader.DataLoader(test_set, batch_size=batch_size, shuffle=False,collate_fn = CaptchaCollateFn(height,width,keep_ratio,False))
 
 
 
