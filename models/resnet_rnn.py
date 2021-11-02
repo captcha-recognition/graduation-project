@@ -28,8 +28,8 @@ class ResNetRNN(nn.Module):
 
 
 if __name__ == '__main__':
-    data = torch.rand((128, 3, 32, 100))
-    crnn = ResNetRNN((3, 32, 100), 63)
+    data = torch.rand((128, 3, 32, 74))
+    crnn = ResNetRNN((3, 32, 74), 63)
     print(crnn)
     out = crnn(data)
     print(out.shape)

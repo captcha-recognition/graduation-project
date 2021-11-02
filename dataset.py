@@ -31,10 +31,7 @@ class CaptchaDataset(dataset.Dataset):
         assert root
         self.root = root
         self.train = train
-        if transformer:
-            self.transformer = transformer
-        else:
-            self.transformer = transforms.ToTensor()
+        self.transformer = transformer
         self.labels = None
         if self.train:
             if multi:
@@ -97,14 +94,33 @@ class CaptchaDataset(dataset.Dataset):
             target_length = [len(target)]
             target = torch.LongTensor(target)
             target_length = torch.LongTensor(target_length)
-            img = self.transformer(img)
+            if self.transformer:
+                img = self.transformer(img)
             return img, target, target_length
         else:
             return image_path, self.transformer(img)
 
-def captcha_collate_fn(batch):
+def resizeNormalize(image,imgH, imgW):
+    """
+    resize and normalize image
+    """
+    transformer = transforms.Compose(
+        [transforms.Resize((imgH, imgW)),
+         transforms.ToTensor(),
+         transforms.Normalize(mean=config.mean, std=config.std)
+         ]
+    )
+    return transformer(image)
 
+def captcha_collate_fn(batch,imgH = 32, imgW = 100, keep_ratio = True):
     images, targets, target_lengths = zip(*batch)
+    if keep_ratio:
+        max_ratio = 0.0
+        for image in images:
+            w,h = image.size
+            max_ratio = max(max_ratio,w/float(h))
+        imgW = max(int(max_ratio*imgH),imgW)
+    images = [resizeNormalize(image,imgH,imgW) for image in images]
     images = torch.stack(images, 0)
     targets = torch.cat(targets, 0)
     target_lengths = torch.cat(target_lengths, 0)
@@ -121,16 +137,16 @@ def train_loader(train_path,multi = False,train_rate = config.train_rate,batch_s
     :param width: resize width
     :return: 
     """""
-    if transformer is None:
-        transformer = transforms.Compose(
-            [
-              #transforms.RandomAffine((0.9,1.1)),
-              #transforms.RandomRotation(8),
-              transforms.Resize((height, width)),
-              transforms.ToTensor(),
-              transforms.Normalize(mean=config.mean,std= config.std)
-             ]
-        )
+    # if transformer is None:
+    #     transformer = transforms.Compose(
+    #         [
+    #           #transforms.RandomAffine((0.9,1.1)),
+    #           #transforms.RandomRotation(8),
+    #           transforms.Resize((height, width)),
+    #           transforms.ToTensor(),
+    #           transforms.Normalize(mean=config.mean,std= config.std)
+    #          ]
+    #     )
     train_set = CaptchaDataset(train_path,multi = multi, transformer=transformer)
     train_len = int(len(train_set)*train_rate)
     train_data, val_data = torch.utils.data.random_split(train_set,[train_len,len(train_set)-train_len])
@@ -148,13 +164,13 @@ def test_loader(test_path,batch_size = config.test_batch_size, height = config.h
     :param y:
     :return:
     """
-    if transformer is None:
-        transformer = transforms.Compose(
-        [transforms.Resize((height, width)),
-         transforms.ToTensor(),
-         transforms.Normalize(mean=config.mean, std=config.std)
-         ]
-    )
+    # if transformer is None:
+    #     transformer = transforms.Compose(
+    #     [transforms.Resize((height, width)),
+    #      transforms.ToTensor(),
+    #      transforms.Normalize(mean=config.mean, std=config.std)
+    #      ]
+    # )
     test_set = CaptchaDataset(test_path,train = False, transformer=transformer)
     return dataloader.DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
@@ -163,17 +179,17 @@ def test_loader(test_path,batch_size = config.test_batch_size, height = config.h
 if __name__ == '__main__':
      init_log('test')
      height,width = 32,100
-     transformer = transforms.Compose(
-        [
-            #transforms.RandomAffine((0.9, 1.1)),
-            #transforms.RandomRotation(8),
-            transforms.Resize((32, int(width/(height/3)))),
-            transforms.ToTensor(),
-        ]
-     )
+    #  transformer = transforms.Compose(
+    #     [
+    #         #transforms.RandomAffine((0.9, 1.1)),
+    #         #transforms.RandomRotation(8),
+    #         transforms.Resize((32, int(width/(height/3)))),
+    #         transforms.ToTensor(),
+    #     ]
+    #  )
      path = '/Users/sjhuang/Documents/docs/dataset/train'
-     train_loader,val_loader = train_loader(path,multi = True,transformer = transformer)
-     imgs, targets, target_lens  = next(iter(train_loader))
+     train_loade,val_loader = train_loader(path,multi = True,transformer = None)
+     imgs, targets, target_lens  = next(iter(train_loade))
      grid_img = torchvision.utils.make_grid(imgs,nrow = 4)
      plt.imshow(grid_img.permute(1, 2, 0))
      plt.imsave(f"pres/preprocessed_{height}_{width}.jpg",grid_img.permute(1, 2, 0).numpy())
