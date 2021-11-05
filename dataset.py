@@ -39,6 +39,7 @@ class CaptchaDataset(dataset.Dataset):
         else:
             paths = [self.root]
         self._extract_images(paths)
+        self._check_images()
 
     def __extract_images(self, paths):
 
@@ -82,6 +83,17 @@ class CaptchaDataset(dataset.Dataset):
                     #     self.labels.append(file_path.split('.')[0])
 
         assert len(self.image_paths) == len(self.labels) 
+    
+    def _check_images(self):
+        err_labels = []
+        for img_path,label in zip(self.image_paths,self.labels):
+            for c in label:
+                if not ((c >= '0' and c <= '9') or (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z')):
+                    err_labels.append(img_path)
+                    break
+        if(len(err_labels)):
+            logger.error(f'Please check {err_labels}')
+
         
 
     def __len__(self):
@@ -110,7 +122,7 @@ class CaptchaDataset(dataset.Dataset):
             label = str(self.labels[idx])
             label = label.lower()
         if len(label) != 4:
-            logger.info(f'{label} length error')
+            logger.info(f'{label} length not 4')
             #logger.info(label)
         target = [config.CHAR2LABEL[c] for c in label]
         target_length = [len(target)]
