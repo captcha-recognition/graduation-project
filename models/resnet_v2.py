@@ -102,7 +102,7 @@ class BasicBlock(nn.Module):
 
 
 
-class ResNet(nn.Module):
+class ResNetV2(nn.Module):
     def __init__(self, in_channels, layers, **kwargs):
         super().__init__()
         supported_layers = {
