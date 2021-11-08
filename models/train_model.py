@@ -30,6 +30,7 @@ class Trainer(object):
         self.labels2char = labels2char
         if not self.eval:
             self.experiment = wandb.init(self.net.name())
+        self.load()
     
     def parameters(self):
         return self.net.parameters()

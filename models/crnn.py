@@ -6,6 +6,7 @@ class CRNN(BaseModule):
 
     def __init__(self, config: dict):
         super().__init__(config)
+       
         self.cnn = getattr(nets,self.config['model']['cnn'])(self.config['base']['in_channel'])
         if self.config['model']['rnn'] == 'lstm':
             self.rnn = nn.LSTM(self.config['model']['map_to_seq_hidden'], self.config['model']['rnn_hidden'], 
@@ -13,8 +14,9 @@ class CRNN(BaseModule):
         else:
             self.rnn = nn.GRU(self.config['model']['map_to_seq_hidden'], self.config['model']['rnn_hidden'], 
              num_layers=self.config['model']['rnn_num_layers'], bidirectional=True)
-        self.out = nn.Linear(self.config['model']['rnn_num_layers']*self.config['model']['rnn_hidden'],
+        self.dense = nn.Linear(self.config['model']['rnn_num_layers']*self.config['model']['rnn_hidden'],
               self.config['model']['num_class'])
+        
     
     def forward(self,images):
         """
@@ -28,7 +30,7 @@ class CRNN(BaseModule):
         x = x.view(b, c* h, w)
         x = x.permute(2, 0, 1)  # (width, batch, feature)
         x, _ = self.rnn(x)
-        output = self.out(x)
+        output = self.dense(x)
         return output  # shape: (seq_len, batch, num_class)
 
     
