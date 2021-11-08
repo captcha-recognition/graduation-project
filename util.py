@@ -1,13 +1,13 @@
+import logging
 import os
-
 import numpy as np
-import pandas as pd
+from numpy.lib.npyio import save
 import torch
 import random
-from tqdm import tqdm
-import config
-from config import LABEL2CHAR,CHAR2LABEL,configs
-from models import crnn,crnn_v2,resnet_rnn,resnet_gru
+from torch._C import dtype
+import yaml
+from logger import init_log
+import pandas as pd
 
 def setup_seed(seed):
     torch.manual_seed(seed)
@@ -16,36 +16,45 @@ def setup_seed(seed):
     random.seed(seed)
 
 
-def decode_target(sequence):
-    return ''.join([LABEL2CHAR[x] for x in sequence]).replace(' ', '')
+def parse_config(config_path:str,save_log = False):
+    # 获取当前脚本所在文件夹路径
+    curPath = os.path.dirname(os.path.realpath(__file__))
+    # 获取yaml文件路径
+    yaml_path = os.path.join(curPath, config_path)
+    # open方法打开直接读出来
+    config = yaml.load(open(yaml_path, 'r', encoding='utf-8'),Loader=yaml.SafeLoader)
+    logger = init_log(config['model']['name'],save_log = save_log)
+    return config,logger
 
 
-models = {
-    'crnn': crnn.CRNN,
-    'crnn_v2':crnn_v2.CRNN_V2,
-    'resnet_rnn':resnet_rnn.ResNetRNN,
-    'resnet_gru':resnet_gru.ResNetRRU
-}
+def generator_char_dict(characters):
+    """
+    生成对应的词典
+    """
+    CHAR2LABEL = {char: i for i, char in enumerate(characters)}
+    LABEL2CHAR = {label: char for char, label in CHAR2LABEL.items()}
+    num_class = len(LABEL2CHAR)
+    return CHAR2LABEL,LABEL2CHAR,num_class
 
-def make_model(model_name):
-    model = models[model_name]
-    assert model
-    model_params = configs[model_name]
-    crnn = model((config.channel,config.height,config.width),
-                 config.num_class,model_params['map_to_seq_hidden'],
-                 model_params['rnn_hidden'],model_params['leaky_relu'])
-    return crnn
 
-def dataset_check(path):
-    labels = pd.read_csv(os.path.join(path,'train_label.csv'))
-    keys = list(labels['ID'].values)
-    vals = list(labels['label'].values)
-    for key,val in tqdm(zip(keys,vals)):
-        try:
-            val = val.lower()
-            label = [CHAR2LABEL[ch] for ch in val]
-        except Exception as e:
-            print(val,key,e)
+def init(seed:int,config_path:str,save_log = True):
+    setup_seed(seed)
+    config, logger =  parse_config(config_path,save_log = save_log)
+    CHAR2LABEL,LABEL2CHAR,num_class = generator_char_dict(config['base']['characters'])
+    config['base']['char2labels'] = CHAR2LABEL
+    config['base']['labels2char'] = LABEL2CHAR
+    config['model']['num_class'] = num_class
+    logger.info(f'Config: {config}')
+    return config,logger
+
+
+def save_preds(reals:list[str], preds:list[str],output_path:str):
+    res = pd.DataFrame({'Real':reals,'Pred':preds})
+    curPath = os.path.dirname(os.path.realpath(__file__))
+    save_path = os.path.join(curPath,f'predicts/{output_path}.csv')
+    res.to_csv(save_path,index=False)
+    return save_path
+
 
 if __name__ == '__main__':
-    dataset_check('~/Documents/docs/dataset/label_data/captcha_generator')
+    parse_config('configs/local/resnet_rnn_ctc.yaml')

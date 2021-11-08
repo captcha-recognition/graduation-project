@@ -1,37 +1,34 @@
-import torch
 import torch.nn as nn
-from models.simple_cnn import SimpleCNN
+from models import nets
+from models.base_model import BaseModule
 
-class CRNN(nn.Module):
+class CRNN(BaseModule):
 
-    def __init__(self,input_shape, num_class,
-                 map_to_seq_hidden= 512, rnn_hidden=256, leaky_relu=False):
-        super(CRNN, self).__init__()
-        (img_channel, img_height, img_width) = input_shape
-        self.cnn = SimpleCNN(img_channel, img_height, img_width, leaky_relu)
-        output_channel, output_height, output_width = self.cnn.features()
-        #self.map_to_seq = nn.Linear(output_channel * output_height, map_to_seq_hidden)
-        self.rnn = nn.LSTM(map_to_seq_hidden, rnn_hidden, num_layers=2, bidirectional=True)
-        self.dense = nn.Linear(2 * rnn_hidden, num_class)
-
-    def forward(self, images):
-        # shape of images: (batch, channel, height, width)
+    def __init__(self, config: dict):
+        super().__init__(config)
+        self.cnn = getattr(nets,self.config['model']['cnn'])(self.config['base']['in_channel'])
+        if self.config['model']['rnn'] == 'lstm':
+            self.rnn = nn.LSTM(self.config['model']['map_to_seq_hidden'], self.config['model']['rnn_hidden'], 
+             num_layers=self.config['model']['rnn_num_layers'], bidirectional=True)
+        else:
+            self.rnn = nn.GRU(self.config['model']['map_to_seq_hidden'], self.config['model']['rnn_hidden'], 
+             num_layers=self.config['model']['rnn_num_layers'], bidirectional=True)
+        self.out = nn.Linear(self.config['model']['rnn_num_layers']*self.config['model']['rnn_hidden'],
+              self.config['model']['num_class'])
+    
+    def forward(self,images):
+        """
+        images: 训练数据, shape (batch_size, channel, height, width)
+        height 必须为 32
+        """
+        b,c,h,w = images.shape
+        assert h == 32
         x = self.cnn(images)
-        batch, channel, height, width = x.size()
-        x = x.view(batch, channel * height, width)
+        b,c,h,w = x.shape
+        x = x.view(b, c* h, w)
         x = x.permute(2, 0, 1)  # (width, batch, feature)
-        # seq = self.map_to_seq(conv)
         x, _ = self.rnn(x)
-        output = self.dense(x)
+        output = self.out(x)
         return output  # shape: (seq_len, batch, num_class)
 
-    def name(self):
-        return "crnn"
-
-
-if __name__ == '__main__':
-    data = torch.rand((64,3,32,100))
-    crnn = CRNN((3,32,100),63)
-    print(crnn)
-    out = crnn(data)
-    print(out.shape)
+    

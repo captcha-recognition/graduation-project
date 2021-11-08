@@ -29,16 +29,14 @@ class ResidualBlock(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, input_shape):
+    def __init__(self, in_channel):
         super().__init__()
         self.in_channel = 64
         channels = [64,128,256,512]
         strides = [1,2,2,2]
         num_blocks = [3,4,6,3]
-        self.input_shape = input_shape
-        channel, height, width = input_shape
         self.conv1 = nn.Sequential(
-            nn.Conv2d(channel, self.in_channel, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.Conv2d(in_channel, self.in_channel, kernel_size=3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(self.in_channel, track_running_stats=True),
             nn.ReLU(),
         )
@@ -62,11 +60,8 @@ class ResNet(nn.Module):
 
 
 if __name__ == '__main__':
-    # from torchstat import stat
-    resnet = ResNet((3,32,100))
-    # stat(resnet,input_size=(3,32,100))
-    # #(batch, channel, height, width)
-    print(resnet)
     x = torch.rand((16,3,32,100))
-    out = resnet(x)
-    print(out.shape)
+    net = ResNet(in_channel=3)
+    out = net(x)
+    #16, 512, 2, 12
+    print(out.shape,x.shape)

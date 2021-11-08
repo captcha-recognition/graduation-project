@@ -1,6 +1,5 @@
-from collections import OrderedDict
-import torch
 from torch import nn
+import torch
 
 class ConvBNACT(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, groups=1, act=None):
@@ -103,7 +102,7 @@ class BasicBlock(nn.Module):
 
 
 class ResNetV2(nn.Module):
-    def __init__(self, in_channels, layers, **kwargs):
+    def __init__(self, in_channel, layers = 34):
         super().__init__()
         supported_layers = {
             18: {'depth': [2, 2, 2, 2], 'block_class': BasicBlock},
@@ -114,10 +113,10 @@ class ResNetV2(nn.Module):
 
         depth = supported_layers[layers]['depth']
         block_class = supported_layers[layers]['block_class']
-
+        self.in_channel = in_channel
         num_filters = [64, 128, 256, 512]
         self.conv1 = nn.Sequential(
-            ConvBNACT(in_channels=in_channels, out_channels=32, kernel_size=3, stride=1, padding=1, act='relu'),
+            ConvBNACT(in_channels=in_channel, out_channels=32, kernel_size=3, stride=1, padding=1, act='relu'),
             ConvBNACT(in_channels=32, out_channels=32, kernel_size=3, stride=1, act='relu', padding=1),
             ConvBNACT(in_channels=32, out_channels=64, kernel_size=3, stride=1, act='relu', padding=1)
         )
@@ -151,3 +150,10 @@ class ResNetV2(nn.Module):
             x = stage(x)
         x = self.out(x)
         return x
+
+if __name__ == '__main__':
+    x = torch.rand((16,3,32,100))
+    net = ResNetV2(in_channel=3)
+    out = net(x)
+    #[16, 512, 1, 25]
+    print(out.shape,x.shape)

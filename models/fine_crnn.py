@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from models.resnet import ResNet
-from models.resnet_rnn import ResNetRNN
-class FineResnetRnn(nn.Module):
+from models.base_model import BaseModule
 
+class FineResnetRnn(BaseModule):
+    """
+    微调 resnet_rnn
+    """
     def __init__(self,pretrained_model:nn.Module,fixed_layer = 2):
         super(FineResnetRnn, self).__init__()
         self.fixed_layer = fixed_layer
@@ -26,18 +28,5 @@ class FineResnetRnn(nn.Module):
     def name(self):
         return "fine_resnet_rnn"
 
-
-
-if __name__ == '__main__':
-    crnn = ResNetRNN(input_shape=(3,32,100),num_class= 63)
-    #print(crnn.cnn.conv1)
-    for param in crnn.cnn.conv1.parameters():
-        param.requires_grad = False
-    fixed_layer =  2
-    for idx, child in enumerate(crnn.cnn.layers.children()):
-        if idx < fixed_layer:
-            for param in child.parameters():
-                param.requires_grad = False
-            print(child, idx)
 
 
