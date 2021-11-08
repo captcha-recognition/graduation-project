@@ -62,9 +62,11 @@ class ResNet(nn.Module):
 
 
 if __name__ == '__main__':
-    resnet = ResNet((3,32,74))
-    #(batch, channel, height, width)
+    # from torchstat import stat
+    resnet = ResNet((3,32,100))
+    # stat(resnet,input_size=(3,32,100))
+    # #(batch, channel, height, width)
     print(resnet)
-    x = torch.rand((16,3,32,74))
+    x = torch.rand((16,3,32,100))
     out = resnet(x)
     print(out.shape)
