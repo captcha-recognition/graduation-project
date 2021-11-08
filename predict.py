@@ -58,11 +58,11 @@ def predict(crnn,test_loader,label2char,device,decode_method,beam_size):
 
 
 
-def main(test_path,checkpoint_path,model_name,has_label = False,decode_method = "beam_search",beam_size = 10):
+def main(test_path,checkpoint_path,model_name,multi,has_label = False,decode_method = "beam_search",beam_size = 10):
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f'device: {device}, model_name {model_name} has_label {has_label}')
-    predict_loader = dataset.test_loader(test_path)
+    print(f'device: {device}, model_name {model_name} has_label {has_label},multi {multi}')
+    predict_loader = dataset.test_loader(test_path,multi = multi)
     crnn = load_model(checkpoint_path,device,model_name)
     crnn.load_state_dict(torch.load(checkpoint_path, map_location=device))
     crnn.to(device)
@@ -82,8 +82,11 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint_path', type=str, required=True,help='The path of test dataset')
     parser.add_argument('--model', type=str, required=True, default='crnn',
                         help='The mode of predict')
+    parser.add_argument('--multi', type=bool, required=False, default=False,
+                        help='multi or not')
     parser.add_argument('--has_label', type=bool, required=False, default=False,
                         help='The mode of predict')
     args = parser.parse_args()
-    init_log(args.model)
-    main(args.test_path, args.checkpoint_path,args.model,args.has_label)
+    print(args)
+    #init_log(args.model)
+    main(args.test_path, args.checkpoint_path,args.model,args.multi,args.has_label)

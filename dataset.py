@@ -41,22 +41,22 @@ class CaptchaDataset(dataset.Dataset):
         self._extract_images(paths)
         self._check_images()
 
-    def __extract_images(self, paths):
+    # def __extract_images(self, paths):
 
-        image_paths = []
-        labels = []
-        logger.info(f'read data from {paths}')
-        for item_path in paths:
-            logger.info(f'read data from {item_path}')
-            info = pd.read_json(os.path.join(item_path,'train_label.json',),dtype=str)
-            item_image_paths = [os.path.join(item_path,path) for path in list(info['ID'].values)]
-            item_labels = list(info['label'].values)
-            image_paths += item_image_paths
-            labels += item_labels
-        self.image_paths = image_paths
-        self.labels = labels
+    #     image_paths = []
+    #     labels = []
+    #     logger.info(f'read data from {paths}')
+    #     for item_path in paths:
+    #         logger.info(f'read data from {item_path}')
+    #         info = pd.read_json(os.path.join(item_path,'train_label.json',),dtype=str)
+    #         item_image_paths = [os.path.join(item_path,path) for path in list(info['ID'].values)]
+    #         item_labels = list(info['label'].values)
+    #         image_paths += item_image_paths
+    #         labels += item_labels
+    #     self.image_paths = image_paths
+    #     self.labels = labels
 
-        assert len(self.image_paths) == len(self.labels)
+    #     assert len(self.image_paths) == len(self.labels)
     
     def _extract_images(self,paths):
         self.image_paths = []
@@ -211,7 +211,7 @@ def train_loader(train_path,multi = False,train_rate = config.train_rate,batch_s
            dataloader.DataLoader(val_data, batch_size=batch_size, shuffle=True,collate_fn= CaptchaCollateFn(height,width,keep_ratio,False))
 
 
-def test_loader(test_path,batch_size = config.test_batch_size, height = config.height,
+def test_loader(test_path,multi = False,batch_size = config.test_batch_size, height = config.height,
                 width = config.width,keep_ratio = True,transformer = None):
     """
 
@@ -228,7 +228,7 @@ def test_loader(test_path,batch_size = config.test_batch_size, height = config.h
     #      transforms.Normalize(mean=config.mean, std=config.std)
     #      ]
     # )
-    test_set = CaptchaDataset(test_path,train = False, transformer=transformer)
+    test_set = CaptchaDataset(test_path,multi = multi,train = False, transformer=transformer)
     return dataloader.DataLoader(test_set, batch_size=batch_size, shuffle=False,collate_fn = CaptchaCollateFn(height,width,keep_ratio,False))
 
 
