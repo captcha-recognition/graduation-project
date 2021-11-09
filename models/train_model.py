@@ -68,7 +68,7 @@ class Trainer(object):
                       beam_size=self.config['loss']['beam_size'])
                  reals = targets.cpu().numpy().tolist()
                  total_loss += loss.item()
-                 total_count += 1
+                 total_count += batch
                  target_lengths = target_lengths.cpu().numpy().tolist()
                  total_acc += self.cal_acc(preds,reals,target_lengths)
                  pbar.update(1)
@@ -105,7 +105,7 @@ class Trainer(object):
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-            total_count += 1
+            total_count += batch
             pbar.update(1)
         pbar.close()
         scheduler.step()

@@ -20,7 +20,7 @@ def main(config:dict,logger:logging):
     optimizer = optim.Adam(trainer.parameters(), lr=config['optimizer']['base_lr'])
     scheduler = optim.lr_scheduler.MultiStepLR(optimizer,milestones=config['optimizer']['milestones'],
                gamma = config['optimizer']['gamma'])
-    criterion = nn.CTCLoss()
+    criterion = nn.CTCLoss(reduction='sum')
     criterion.to(config['base']['device'])
 
  

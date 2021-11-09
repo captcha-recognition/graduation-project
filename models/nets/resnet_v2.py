@@ -149,6 +149,7 @@ class ResNetV2(nn.Module):
         for stage in self.stages:
             x = stage(x)
         x = self.out(x)
+        # [b,c,h,w]
         return x
 
 if __name__ == '__main__':
