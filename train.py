@@ -22,6 +22,7 @@ def main(config:dict,logger:logging):
                gamma = config['optimizer']['gamma'])
     criterion = nn.CTCLoss()
     criterion.to(config['base']['device'])
+
  
     # 训练模型
     for epoch in tqdm(range(1, config['train']['epochs']+1)):

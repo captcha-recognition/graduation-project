@@ -113,7 +113,7 @@ class Trainer(object):
         self.experiment.log({
            'train loss':self.train_loss[-1],
            'epoch': epoch,
-           'lr': scheduler.get_last_lr()
+           'lr': scheduler.get_last_lr()[-1]
         })
     
     def save(self):
