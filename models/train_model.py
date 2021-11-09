@@ -79,7 +79,7 @@ class Trainer(object):
                 'val loss': self.val_loss[-1],
                 'val acc':self.acc[-1],
                 'epoch': epoch,
-                'images': wandb.Image(images[-1].cpu(),caption=f'Real:{self.decode_target(reals[0:target_lengths[0]])}, Pred:{self.decode_target(preds[0])}'),
+                'images': wandb.Image(images[0].cpu(),caption=f'Real:{self.decode_target(reals[0:target_lengths[0]])}, Pred:{self.decode_target(preds[0])}'),
               })
              if self.best_score < self.acc[-1]:
                 self.best_score = self.acc[-1]
