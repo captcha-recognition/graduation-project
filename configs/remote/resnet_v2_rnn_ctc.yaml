@@ -21,7 +21,7 @@ train:
   batch_size: 128
   input_path: '/Disk/hsj/dataset/train'
   multi: True
-  checkpoints_path: 'resnet_v2_rnn_ctc'
+  checkpoints_path: 'checkpoints/resnet_v2_rnn_ctc'
   output_path: ''
   early_stop: 50
   valid_interval: 2

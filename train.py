@@ -31,8 +31,10 @@ def main(config:dict,logger:logging):
             if epoch % config['train']['valid_interval'] == 0:
                 trainer.val(criterion,epoch,valid_load)
                 trainer.info()
+        else:
+            break
     
-    logger.info(f'Over All!')
+    logger.info(f'All Over!')
 
 if __name__ == '__main__':
     import argparse
