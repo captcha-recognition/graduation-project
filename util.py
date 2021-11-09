@@ -45,6 +45,7 @@ def init(seed:int,config_path:str,save_log = True):
     config['base']['labels2char'] = LABEL2CHAR
     config['model']['num_class'] = num_class
     logger.info(f'Config: {config}')
+    #print(type(config['base']['char2labels']))
     return config,logger
 
 

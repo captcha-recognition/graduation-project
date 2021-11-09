@@ -19,7 +19,7 @@ base:
 
 train:
   batch_size: 128
-  input_path: '/Users/sjhuang/Documents/docs/dataset/train'
+  input_path: '/Disk/hsj/dataset/train'
   multi: True
   checkpoints_path: 'resnet_v2_rnn_ctc'
   output_path: ''
@@ -30,7 +30,7 @@ train:
 
 test:
   batch_size: 32
-  input_path: '/Users/sjhuang/Documents/docs/dataset/test'
+  input_path: '/Disk/hsj/dataset/test'
   output_path: 'checkpoints/resnet_v2_rnn_ctc_checkpoints'
   multi: True
   keep_ratio: True

@@ -20,6 +20,8 @@ class BaseModule(nn.Module):
         """
         if self.config['base']['pretrained'] or not self.config['base']['train']:
             self.load_state_dict(torch.load(self.config['base']['load_path'], map_location=self.config['base']['device']))
+            return True
+        return False
     
     def save(self,pre:str):
         """

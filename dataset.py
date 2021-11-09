@@ -175,9 +175,9 @@ def train_loader(config,logger,transformer = None):
     train_len = int(len(train_set)*config['base']['train_rate'])
     train_data, val_data = torch.utils.data.random_split(train_set,[train_len,len(train_set)-train_len])
     return dataloader.DataLoader(train_data, batch_size=config['train']['batch_size'], shuffle=True,
-           collate_fn= CaptchaCollateFn(height,width,config['train']['keep_ratio'],True,config['base']['mean'],config['base']['std'])),\
+           collate_fn= CaptchaCollateFn(config['base']['height'],config['base']['width'],config['train']['keep_ratio'],True,config['base']['mean'],config['base']['std'])),\
            dataloader.DataLoader(val_data, batch_size=config['train']['batch_size'], shuffle=True,
-           collate_fn= CaptchaCollateFn(height,width,config['train']['keep_ratio'],False,config['base']['mean'],config['base']['std']))
+           collate_fn= CaptchaCollateFn(config['base']['height'],config['base']['width'],config['train']['keep_ratio'],False,config['base']['mean'],config['base']['std']))
 
 
 def test_loader(config:dict,logger:logging,transformer = None):

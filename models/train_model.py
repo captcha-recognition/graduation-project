@@ -21,7 +21,8 @@ class Trainer(object):
         self.f1_score = []
         self.train_loss = []
         self.net = getattr(models,config['base_model'])(config)
-        self.net.to(self.config['base']['device'])
+        self.device = self.config['base']['device']
+        self.net.to(self.device)
         self.early_stop = config['train']['early_stop']
         self.best_score = 0.0
         self.early_stop_count = 0
@@ -111,7 +112,8 @@ class Trainer(object):
         self.train_loss.append(total_loss/total_count)
         self.experiment.log({
            'train loss':self.train_loss[-1],
-           'epoch': epoch
+           'epoch': epoch,
+           'lr': scheduler.get_lr()
         })
     
     def save(self):
@@ -131,8 +133,8 @@ class Trainer(object):
         return self.early_stop_count < self.early_stop
     
     def load(self):
-        self.net.load()
-        self.logger.info(f"{self.net.name()} load model's parameters from {self.config['base']['load_path']}")
+        if self.net.load():
+            self.logger.info(f"{self.net.name()} load model's parameters from {self.config['base']['load_path']}")
     
     def predict(self,test_load):
         self.net.eval()
@@ -140,7 +142,7 @@ class Trainer(object):
         all_reals = []
         with torch.no_grad():
             for data in tqdm(test_load):
-                images, targets, target_lengths = [d.to(self.config['base']['device']) for d in data]
+                images, targets, target_lengths = [d.to(self.device) for d in data]
                 out = self.net(images)
                 log_probs = F.log_softmax(out, dim=2)
                 preds = ctc_decode(log_probs, method=self.config['loss']['decode_method'], 
