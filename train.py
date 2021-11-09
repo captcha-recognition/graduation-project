@@ -24,11 +24,11 @@ def main(config:dict,logger:logging):
     criterion.to(config['base']['device'])
  
     # 训练模型
-    for epoch in tqdm(range(1, config['train']['epochs'])):
+    for epoch in tqdm(range(1, config['train']['epochs']+1)):
         if trainer.runing():
             trainer.train(optimizer,scheduler,criterion,epoch,train_load)
             if epoch % config['train']['valid_interval'] == 0:
-                trainer.eval(criterion,epoch,valid_load)
+                trainer.val(criterion,epoch,valid_load)
                 trainer.info()
     
     logger.info(f'Over All!')

@@ -49,7 +49,7 @@ class Trainer(object):
                 wrong_cases.append((real, pred))
         return tot_correct
     
-    def eval(self, criterion,epoch, data_loader):
+    def val(self, criterion,epoch, data_loader):
         self.net.eval()
         self.val_epochs.append(epoch)
         total_loss = 0
@@ -72,21 +72,21 @@ class Trainer(object):
                  target_lengths = target_lengths.cpu().numpy().tolist()
                  total_acc += self.cal_acc(preds,reals,target_lengths)
                  pbar.update(1)
-        pbar.close()
-        self.val_loss.append(total_loss/total_count)
-        self.acc.append(total_acc/total_count)
-        self.experiment.log({
-           'val loss': self.val_loss[-1],
-           'val acc':self.acc[-1],
-           'epoch': epoch,
-           'images': wandb.Image(images[-1].cpu(),caption=f'Real:{self.decode_target(reals[0:target_lengths[0]])}, Pred:{self.decode_target(preds[0])}'),
-        })
-        if self.best_score < self.acc[-1]:
-            self.best_score = self.acc[-1]
-            self.early_stop_count = 0
-            self.save()
-        else:
-            self.early_stop_count += 1            
+             pbar.close()
+             self.val_loss.append(total_loss/total_count)
+             self.acc.append(total_acc/total_count)
+             self.experiment.log({
+                'val loss': self.val_loss[-1],
+                'val acc':self.acc[-1],
+                'epoch': epoch,
+                'images': wandb.Image(images[-1].cpu(),caption=f'Real:{self.decode_target(reals[0:target_lengths[0]])}, Pred:{self.decode_target(preds[0])}'),
+              })
+             if self.best_score < self.acc[-1]:
+                self.best_score = self.acc[-1]
+                self.early_stop_count = 0
+                self.save()
+             else:
+                self.early_stop_count += 1            
 
     def train(self, optimizer, scheduler,criterion, epoch, data_loader):
         self.net.train()
