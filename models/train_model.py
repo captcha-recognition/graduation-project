@@ -117,14 +117,8 @@ class Trainer(object):
         })
     
     def save(self):
-        pid = os.getpid()
-        day = time.strftime('%Y%m%d', time.localtime(time.time()))
-        model_name = f'{day}_{pid}_model.pt'
-        if not os.path.exists(self.config['train']['checkpoints_path']):
-            os.mkdir(self.config['train']['checkpoints_path'])
-        path = os.path.join(self.config['train']['checkpoints_path'],model_name)
-        torch.save(self.net.state_dict(),path)
-        self.logger.info(f'save model at {path}, epoch:{self.train_epochs[-1]}, loss:{self.val_loss[-1]},acc:{self.acc[-1]} ')
+        save_path = self.net.save()
+        self.logger.info(f'save model at {save_path}, epoch:{self.train_epochs[-1]}, loss:{self.val_loss[-1]},acc:{self.acc[-1]} ')
     
     
     def info(self):

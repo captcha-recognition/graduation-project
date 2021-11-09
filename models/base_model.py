@@ -23,19 +23,16 @@ class BaseModule(nn.Module):
             return True
         return False
     
-    def save(self,pre:str):
+    def save(self):
         """
-        pre: 前缀
+
         """
-        if pre is None:
-            pre = ""
-        assert self.config['train']['output_path']
+        assert self.config['train']['checkpoints_path']
         pid = os.getpid()
         day = time.strftime('%Y%m%d', time.localtime(time.time()))
-        model_path = os.path.join(self.config['train']['output_path'],f'{day}')
+        model_path = os.path.join(self.config['train']['checkpoints_path'],f'{day}')
         if not os.path.exists(model_path):
             os.makedirs(model_path)
-        save_model_path = os.path.join(model_path,
-                                       f'{pre}_{day}_{pid}_{self.name()}.pt')
+        save_model_path = os.path.join(model_path,f'{day}_{pid}_{self.name()}.pt')
         torch.save(self.state_dict(), save_model_path)
-        # todo add logger
+        return save_model_path
