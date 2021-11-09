@@ -37,7 +37,8 @@ class CaptchaDataset(dataset.Dataset):
         else:
             paths = [self.root]
         self._extract_images(paths)
-        self._check_images()
+        if self.train:
+            self._check_images()
 
 
     def _extract_images(self,paths):
@@ -68,7 +69,7 @@ class CaptchaDataset(dataset.Dataset):
                 if not ((c >= '0' and c <= '9') or (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z')):
                     err_labels.append(img_path)
                     break
-        if(len(err_labels)):
+        if len(err_labels) > 0 and self.train:
             self.logger.error(f'Please check {err_labels}')
 
         
@@ -85,9 +86,10 @@ class CaptchaDataset(dataset.Dataset):
             background = Image.new("RGB", img.size, (255, 255, 255))
             background.paste(img, mask=a) # 3 is the alpha channel
             img  =  background
+        #print(img.size)
         label = str(self.labels[idx])
         label = label.lower()
-        if len(label) != 4:
+        if len(label) != 4 and self.train:
             self.logger.info(f'{label} length not 4')
         target = [self.char2labels[c] for c in label]
         target_length = [len(target)]
@@ -142,8 +144,9 @@ class CaptchaCollateFn(object):
                 w,h = image.size
                 max_ratio = max(max_ratio,w/float(h))
             self.imgW = max(int(max_ratio*self.imgH),self.imgW)
-        # print(images)
+        # print(images)=
         images = [resizeNormalize(image,self.imgH,self.imgW,self.mean,self.std,self.train) for image in images]
+        # print(images[0].shape)
         images = torch.stack(images, 0)
         targets = torch.cat(targets, 0)
         target_lengths = torch.cat(target_lengths, 0)

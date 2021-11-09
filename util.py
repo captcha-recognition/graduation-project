@@ -49,10 +49,10 @@ def init(seed:int,config_path:str,save_log = True):
     return config,logger
 
 
-def save_preds(reals, preds,output_path):
-    res = pd.DataFrame({'Real':reals,'Pred':preds})
+def save_preds(name,reals, preds,images_path,output_path):
+    res = pd.DataFrame({'Image_path':images_path,'Real':reals,'Pred':preds})
     curPath = os.path.dirname(os.path.realpath(__file__))
-    save_path = os.path.join(curPath,f'predicts/{output_path}.csv')
+    save_path = os.path.join(curPath,f'predicts/{name}_{output_path}.csv')
     res.to_csv(save_path,index=False)
     return save_path
 

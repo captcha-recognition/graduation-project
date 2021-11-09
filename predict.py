@@ -23,10 +23,12 @@ def main(config:dict,logger:logging):
     criterion.to(config['base']['device'])
     
     # 预测数据
-    reals, preds = trainer.predict(test_load)       
+    reals, preds = trainer.predict(test_load) 
+    images_path = test_load.dataset.image_paths     
+    test_pre = config['test']['input_path'].split('/')[-1]
     
     # 存储结果
-    save_path = save_preds(reals,preds,config['test']['output_path'])
+    save_path = save_preds(test_pre,reals,preds,images_path,config['test']['output_path'])
     logger.info(f'save predict result in {save_path}!')
 
 if __name__ == '__main__':

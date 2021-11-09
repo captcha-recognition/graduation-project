@@ -13,15 +13,15 @@ base:
    width: 100
    train_rate: 0.9
    train: True
-   pretrained: False
-   load_path: ''
+   pretrained: True
+   load_path: 'checkpoints/resnet_v2_rnn_ctc/20211109/20211109_5879_resnet_v2_rnn_ctc.pt'
    characters: '-0123456789abcdefghijklmnopqrstuvwxyz'
 
 train:
   batch_size: 128
   input_path: '/Users/sjhuang/Documents/docs/dataset/train'
   multi: True
-  checkpoints_path: 'resnet_v2_rnn_ctc'
+  checkpoints_path: 'checkpoints/resnet_v2_rnn_ctc'
   output_path: ''
   early_stop: 50
   valid_interval: 2
@@ -30,9 +30,9 @@ train:
 
 test:
   batch_size: 32
-  input_path: '/Users/sjhuang/Documents/docs/dataset/test'
-  output_path: 'checkpoints/resnet_v2_rnn_ctc_checkpoints'
-  multi: True
+  input_path: '/Users/sjhuang/Documents/docs/dataset/crawlers/xyhn.hainan.gov.cn'
+  output_path: 'resnet_v2_rnn_ctc'
+  multi: False
   keep_ratio: True
 
 base_model: 'CRNN'

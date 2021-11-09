@@ -21,7 +21,7 @@ train:
   batch_size: 128
   input_path: '/Users/sjhuang/Documents/docs/dataset/train'
   multi: True
-  checkpoints_path: 'checkpoints/resnet_rnn_ctc_checkpoints'
+  checkpoints_path: 'checkpoints/resnet_rnn_ctc'
   early_stop: 50
   valid_interval: 2
   epochs: 500
