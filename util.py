@@ -23,6 +23,11 @@ def parse_config(config_path:str,save_log = False):
     yaml_path = os.path.join(curPath, config_path)
     # open方法打开直接读出来
     config = yaml.load(open(yaml_path, 'r', encoding='utf-8'),Loader=yaml.SafeLoader)
+    char_path = os.path.join(curPath,config['base']['char_path'])
+    with open(char_path,encoding='utf-8') as f:
+        characters = f.read()
+        characters = '-'+''.join(characters.split(' '))
+        config['base']['characters'] = characters
     logger = init_log(config['model']['name'],save_log = save_log)
     return config,logger
 

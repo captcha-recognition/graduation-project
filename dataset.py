@@ -1,6 +1,8 @@
 # 数据预处理
 import logging
 import os
+import json
+from PIL.PyAccess import new
 import pandas as pd
 import torch
 import torchvision.utils
@@ -10,7 +12,7 @@ from PIL import Image
 from torch.utils.data import dataset,dataloader
 from util import init
 
-class CaptchaDataset(dataset.Dataset):
+class OcrDataset(dataset.Dataset):
     """
     ## 加载数据，数据格式为
     # train: label.png
@@ -24,7 +26,7 @@ class CaptchaDataset(dataset.Dataset):
         :param transformer: transformer for image
         :param train: train of not
         """
-        super(CaptchaDataset, self).__init__()
+        super(OcrDataset, self).__init__()
         assert root and char2labels
         self.char2labels = char2labels
         self.root = root
@@ -32,14 +34,20 @@ class CaptchaDataset(dataset.Dataset):
         self.transformer = transformer
         self.labels = None
         self.logger = logger
-        if multi:
-            paths = [os.path.join(self.root,path) for path in os.listdir(self.root)]
-        else:
-            paths = [self.root]
-        self._extract_images(paths)
-        if self.train:
-            self._check_images()
+        self._extract_images([self.root])
+        # if self.train:
+        #     self._check_images()
 
+    
+    def _extract_img_paths(self,path):
+        imgs = []
+        labels = []
+        with open(path,encoding='utf-8') as f:
+            items = json.loads(f.read()).items()
+            for k , v in items:
+                imgs.append(k)
+                labels.append(v)
+        return imgs,labels
 
     def _extract_images(self,paths):
         self.image_paths = []
@@ -48,31 +56,21 @@ class CaptchaDataset(dataset.Dataset):
             self.logger.info(path)
             if not os.path.isdir(path):
                 continue
-            file_paths = os.listdir(path)
-            for file_path in file_paths:
-                if file_path.endswith(".png") or file_path.endswith(".jpg") or file_path.endswith("jpeg"):
-                    self.image_paths.append(os.path.join(path,file_path))
-                    name = file_path.split('.')[0]
-                    if name.find('-') != -1:
-                        label = name.split('-')[1]
-                    elif name.find('_') != -1:
-                        label = name.split('_')[1]
-                    else:
-                        label = name
-                    self.labels.append(label)
+            if self.train:
+                img_paths,labels = self._extract_img_paths(os.path.join(path,'gt.json'))
+                self.labels.extend(labels)
+                img_paths = [os.path.join(path,img_path) for img_path in img_paths]
+                self.image_paths.extend(img_paths)
+            else:
+                images_paths = os.listdir(os.path.join(path,'images'))
+                img_paths = list(filter(lambda x: x.endswith('.png') or x.endswith('.jpeg') or x.endswith('.jpg'), images_paths))
+                self.labels.extend(img_paths)
+                img_paths = [os.path.join(path,f'images/{img}') for img in img_paths]
+                self.image_paths.extend(img_paths)
+        
         assert len(self.image_paths) == len(self.labels) 
     
-    def _check_images(self):
-        err_labels = []
-        for img_path,label in zip(self.image_paths,self.labels):
-            for c in label:
-                if not ((c >= '0' and c <= '9') or (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z')):
-                    err_labels.append(img_path)
-                    break
-        if len(err_labels) > 0 and self.train:
-            self.logger.error(f'Please check {err_labels}')
 
-        
 
     def __len__(self):
         return len(self.image_paths)
@@ -87,18 +85,21 @@ class CaptchaDataset(dataset.Dataset):
             background.paste(img, mask=a) # 3 is the alpha channel
             img  =  background
         #print(img.size)
-        label = str(self.labels[idx])
-        label = label.lower()
-        if len(label) != 4 and self.train:
-            self.logger.info(f'{label} length not 4')
-        target = [self.char2labels[c] for c in label]
-        target_length = [len(target)]
-        target = torch.LongTensor(target)
-        target_length = torch.LongTensor(target_length)
         if self.transformer:
             img = self.transformer(img)
-        return img, target, target_length
- 
+        # print(img.size)
+        if self.train:
+            label = str(self.labels[idx])
+            target = [self.char2labels[c] for c in label]
+            target_length = [len(target)]
+            target = torch.LongTensor(target)
+            target_length = torch.LongTensor(target_length)
+            return img, target, target_length
+        else:
+            return img
+   
+        
+
 
 def resizeNormalize(image,imgH, imgW,mean,std,train = False):
     """
@@ -108,7 +109,7 @@ def resizeNormalize(image,imgH, imgW,mean,std,train = False):
         transformer = transforms.Compose(
         [
          transforms.RandomAffine((0.9,1.1)),
-         transforms.RandomRotation(6),
+         transforms.RandomRotation(3),
          transforms.Resize((imgH, imgW)),
          transforms.ToTensor(),
          transforms.Normalize(mean=mean, std=std)
@@ -125,32 +126,57 @@ def resizeNormalize(image,imgH, imgW,mean,std,train = False):
     return transformer(image)
 
 
-class CaptchaCollateFn(object):
+class OcrCollateFn(object):
 
-    def __init__(self,imgH=32, imgW=100, keep_ratio=False,train = False, mean = (0.485, 0.456, 0.406), std =  (0.229, 0.224, 0.225)) -> None:
+    def __init__(self,imgH=32, imgW=100, keep_ratio=False,mode = 'Train', mean = (0.485, 0.456, 0.406), std =  (0.229, 0.224, 0.225)) -> None:
+        """
+        mode: 模式 Train, Test, Valid
+        """
         super().__init__()
         self.imgH = imgH
         self.imgW = imgW
         self.keep_ratio = keep_ratio
-        self.train = train
+        self.mode = mode
         self.mean = mean
         self.std = std
     
+    def resize(self,img:Image.Image):
+        w, h = img.size
+        ratio = h/float(self.imgH)
+        w_ = int(w/ratio)
+        if w_ > self.imgW:
+            w_ = self.imgW
+            img = img.resize((w_,self.imgH))
+        elif w_ < self.imgW:
+            img = img.resize((w_,self.imgH))
+            new_img = Image.new('RGB',(self.imgW,self.imgH),color=(255,255,255))
+            new_img.paste(img,((self.imgW - w_)//2, 0))
+            img = new_img
+        return img
+
     def __call__(self, batch):
-        images, targets, target_lengths = zip(*batch)
+        if self.mode == 'Test':
+            images = batch
+        else:
+            images, targets, target_lengths = zip(*batch)
         if self.keep_ratio:
             max_ratio = 0.0
             for image in images:
                 w,h = image.size
                 max_ratio = max(max_ratio,w/float(h))
-            self.imgW = max(int(max_ratio*self.imgH),self.imgW)
+            self.imgW = int(max_ratio*self.imgH + 0.5)
+            #self.imgH = int(max_ratio*self.imgH)
         # print(images)=
-        images = [resizeNormalize(image,self.imgH,self.imgW,self.mean,self.std,self.train) for image in images]
+        images = [self.resize(image) for image in images]
+        images = [resizeNormalize(image,self.imgH,self.imgW,self.mean,self.std,self.mode == 'Train') for image in images]
         # print(images[0].shape)
         images = torch.stack(images, 0)
-        targets = torch.cat(targets, 0)
-        target_lengths = torch.cat(target_lengths, 0)
-        return images, targets, target_lengths
+        if self.mode == 'Test':
+            return images
+        else:
+            targets = torch.cat(targets, 0)
+            target_lengths = torch.cat(target_lengths, 0)
+            return images, targets, target_lengths
         
     
 
@@ -173,14 +199,14 @@ def train_loader(config,logger,transformer = None):
     #           transforms.Normalize(mean=config.mean,std= config.std)
     #          ]
     #     )
-    train_set = CaptchaDataset(config['train']['input_path'],char2labels = config['base']['char2labels'],logger = logger,
+    train_set = OcrDataset(config['train']['input_path'],char2labels = config['base']['char2labels'],logger = logger,
                 multi = config['train']['multi'], transformer=transformer)
     train_len = int(len(train_set)*config['base']['train_rate'])
     train_data, val_data = torch.utils.data.random_split(train_set,[train_len,len(train_set)-train_len])
     return dataloader.DataLoader(train_data, batch_size=config['train']['batch_size'], shuffle=True,
-           collate_fn= CaptchaCollateFn(config['base']['height'],config['base']['width'],config['train']['keep_ratio'],True,config['base']['mean'],config['base']['std'])),\
+           collate_fn= OcrCollateFn(config['base']['height'],config['base']['width'],config['train']['keep_ratio'],'Train',config['base']['mean'],config['base']['std'])),\
            dataloader.DataLoader(val_data, batch_size=config['train']['batch_size'], shuffle=True,
-           collate_fn= CaptchaCollateFn(config['base']['height'],config['base']['width'],config['train']['keep_ratio'],False,config['base']['mean'],config['base']['std']))
+           collate_fn= OcrCollateFn(config['base']['height'],config['base']['width'],config['train']['keep_ratio'],"Valid",config['base']['mean'],config['base']['std']))
 
 
 def test_loader(config:dict,logger:logging,transformer = None):
@@ -199,10 +225,10 @@ def test_loader(config:dict,logger:logging,transformer = None):
     #      transforms.Normalize(mean=config.mean, std=config.std)
     #      ]
     # )
-    test_set = CaptchaDataset(config['test']['input_path'],char2labels = config['base']['char2labels'],logger = logger,
+    test_set = OcrDataset(config['test']['input_path'],char2labels = config['base']['char2labels'],logger = logger,
                             multi = config['test']['multi'],train = False, transformer=transformer)
     return dataloader.DataLoader(test_set, batch_size=config['test']['batch_size'], shuffle=False,collate_fn = 
-               CaptchaCollateFn(config['base']['height'],config['base']['width'],config['test']['keep_ratio'],False,
+               OcrCollateFn(config['base']['height'],config['base']['width'],config['test']['keep_ratio'],'Test',
                config['base']['mean'],config['base']['std']))
 
 
@@ -217,7 +243,7 @@ if __name__ == '__main__':
     #         transforms.ToTensor(),
     #     ]
     #  )
-     config, logger = init(100,'configs/local/resnet_rnn_ctc.yaml',save_log=False)
+     config, logger = init(100,'configs/local/resnet_v2_rnn_ctc.yaml',save_log=True)
      train_loade,val_loader = train_loader(config,logger,transformer = None)
      imgs, targets, target_lens  = next(iter(train_loade))
      grid_img = torchvision.utils.make_grid(imgs,nrow = 4)

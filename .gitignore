@@ -11,3 +11,4 @@ data
 nohup.out
 wandb
 predicts
+dataset/*

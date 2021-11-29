@@ -57,9 +57,9 @@ if __name__ == '__main__':
         'Accept-Encoding': 'gzip, deflate,br',
         'Accept-Language': 'zh-CN,zh;q=0.9',
     }
-    url = 'https://anhui.12388.gov.cn/xinfang/servlet/randimg?0.7848386119499069'
+    url = 'http://fcxwql.ziyainfo.com/yeecms_admin/modhandler.php?ac=seccode&0.13557581214661774'
     name = split_name(url)
-    nums = 200
+    nums = 300
     path = f"/Users/sjhuang/Documents/docs/dataset/crawlers/{name}"
     if not os.path.exists(path):
         os.mkdir(path)

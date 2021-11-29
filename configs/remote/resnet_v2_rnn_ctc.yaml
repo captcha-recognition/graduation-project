@@ -10,30 +10,32 @@ base:
    device: 'cpu'
    in_channel: 3
    height: 32
-   width: 100
-   train_rate: 0.9
-   train: True
-   pretrained: False
-   load_path: ''
-   characters: '-0123456789abcdefghijklmnopqrstuvwxyz'
+   width: 336
+   train_rate: 0.95
+   train: False
+   pretrained: True
+   load_path: 'checkpoints/resnet_v2_rnn_ctc/20211115/20211115_11502_resnet_v2_rnn_ctc.pt'
+   characters: ''
+   char_path: 'chars.txt'
 
 train:
   batch_size: 128
-  input_path: '/Disk/hsj/dataset/train'
+  input_path: '/datasets/ocr/train'
   multi: True
   checkpoints_path: 'checkpoints/resnet_v2_rnn_ctc'
   output_path: ''
   early_stop: 50
   valid_interval: 2
   epochs: 500
-  keep_ratio: True
+  keep_ratio: False
 
 test:
   batch_size: 32
-  input_path: '/Disk/hsj/dataset/test'
+  input_path: '/Disk/hsj/dataset/2021A_T1_Task1_dataset/test'
   output_path: 'resnet_v2_rnn_ctc'
+  submit_path: '/aiwin/ocr-A/submit/'
   multi: True
-  keep_ratio: True
+  keep_ratio: False
 
 base_model: 'CRNN'
 
@@ -56,8 +58,8 @@ optimizer:
   momentum: 0.9
   base_lr: 0.001
   milestones: 
-    - 30
-    - 100
+    - 50
+    - 150
   gamma: 0.1
   
 
