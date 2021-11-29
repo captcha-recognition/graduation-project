@@ -34,41 +34,22 @@ class OcrDataset(dataset.Dataset):
         self.transformer = transformer
         self.labels = None
         self.logger = logger
-        self._extract_images([self.root])
+        self._extract_images(self.root)
         # if self.train:
         #     self._check_images()
 
     
-    def _extract_img_paths(self,path):
-        imgs = []
-        labels = []
+    def _extract_images(self,path):
+        self.image_paths = []
+        self.labels = []
         with open(path,encoding='utf-8') as f:
             for item in f.readlines():
                 k,v = item.split(' ')
-                imgs.append(k)
-                labels.append(v)
-        return imgs,labels
-
-    def _extract_images(self,paths):
-        self.image_paths = []
-        self.labels = []
-        for path in paths:
-            self.logger.info(path)
-            if not os.path.isdir(path):
-                continue
-            if self.train:
-                img_paths,labels = self._extract_img_paths(os.path.join(path,'gt.json'))
-                self.labels.extend(labels)
-                img_paths = [os.path.join(path,img_path) for img_path in img_paths]
-                self.image_paths.extend(img_paths)
-            else:
-                images_paths = os.listdir(os.path.join(path,'images'))
-                img_paths = list(filter(lambda x: x.endswith('.png') or x.endswith('.jpeg') or x.endswith('.jpg'), images_paths))
-                self.labels.extend(img_paths)
-                img_paths = [os.path.join(path,f'images/{img}') for img in img_paths]
-                self.image_paths.extend(img_paths)
-        
+                self.image_paths.append(k)
+                self.labels.append(v)
+                
         assert len(self.image_paths) == len(self.labels) 
+
     
 
 
