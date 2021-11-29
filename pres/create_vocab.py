@@ -54,7 +54,7 @@ with open('../dataset/train.list', 'r', encoding='UTF-8') as f:
                 if word not in word_list:
                     word_list.append(word)
         if new_label!=[]:
-            datas.append('%s\t%s\n' % (os.path.join('train_images',name), ''.join(new_label)))
+            datas.append('%s\t%s\n' % (os.path.join('dataset/train_images',name), ''.join(new_label)))
 
 word_list.sort()
 

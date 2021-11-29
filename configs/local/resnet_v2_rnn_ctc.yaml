@@ -16,11 +16,11 @@ base:
    pretrained: True
    load_path: 'checkpoints/resnet_v2_rnn_ctc/20211116/20211116_21666_resnet_v2_rnn_ctc.pt'
    characters: ''
-   char_path: 'chars.txt'
+   char_path: 'dataset/vocab.txt'
 
 train:
   batch_size: 64
-  input_path: '/Users/sjhuang/Documents/docs/dataset/aiwin_dataset/ocr/2021A_T1_Task1_dataset/train'
+  input_path: 'dataset/dataset.txt'
   multi: True
   checkpoints_path: 'checkpoints/resnet_v2_rnn_ctc'
   output_path: ''

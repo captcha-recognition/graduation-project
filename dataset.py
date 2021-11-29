@@ -44,10 +44,10 @@ class OcrDataset(dataset.Dataset):
         self.labels = []
         with open(path,encoding='utf-8') as f:
             for item in f.readlines():
-                k,v = item.split(' ')
+                k,v = item.split('\t')
                 self.image_paths.append(k)
                 self.labels.append(v)
-                
+
         assert len(self.image_paths) == len(self.labels) 
 
     
