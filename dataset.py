@@ -43,8 +43,8 @@ class OcrDataset(dataset.Dataset):
         imgs = []
         labels = []
         with open(path,encoding='utf-8') as f:
-            items = json.loads(f.read()).items()
-            for k , v in items:
+            for item in f.readlines():
+                k,v = item.split(' ')
                 imgs.append(k)
                 labels.append(v)
         return imgs,labels
