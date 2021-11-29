@@ -20,7 +20,7 @@ base:
 
 train:
   batch_size: 128
-  input_path: '/datasets/ocr/train'
+  input_path: '/datasets/train_images.txt'
   multi: True
   checkpoints_path: 'checkpoints/resnet_v2_rnn_ctc'
   output_path: ''
@@ -31,7 +31,7 @@ train:
 
 test:
   batch_size: 32
-  input_path: '/Disk/hsj/dataset/2021A_T1_Task1_dataset/test'
+  input_path: '/dataset/test'
   output_path: 'resnet_v2_rnn_ctc'
   submit_path: '/aiwin/ocr-A/submit/'
   multi: True
